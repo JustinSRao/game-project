@@ -49,6 +49,14 @@ export const DialogueLine = z.object({
 });
 export type DialogueLine = z.infer<typeof DialogueLine>;
 
+export const EndingTone = z.enum([
+  "triumphant",
+  "bittersweet",
+  "tragic",
+  "mysterious",
+]);
+export type EndingTone = z.infer<typeof EndingTone>;
+
 /**
  * Where an action leads. In a generated game most transitions are "generate",
  * carrying an authoring hint for the next Scene Writer call. "ending" closes
@@ -59,7 +67,7 @@ export const Transition = z.discriminatedUnion("type", [
   z.object({ type: z.literal("scene"), sceneId: Slug }),
   z.object({
     type: z.literal("ending"),
-    tone: z.enum(["triumphant", "bittersweet", "tragic", "mysterious"]),
+    tone: EndingTone,
     hint: z.string().min(1).max(500),
   }),
 ]);
