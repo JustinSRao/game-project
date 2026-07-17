@@ -63,6 +63,8 @@ export const SessionSave = z.object({
   replayOfBundle: z.string().min(1).max(120).optional(),
   /** Set once the final scene has been generated; picking its choice ends play. */
   endingSceneId: Slug.optional(),
+  /** Consecutive accepted scenes that advanced no arc beat (drift detector). */
+  scenesSinceBeatProgress: z.number().int().min(0).default(0),
   endingSummary: z.string().max(2000).optional(),
 });
 export type SessionSave = z.infer<typeof SessionSave>;

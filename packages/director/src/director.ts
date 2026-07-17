@@ -20,7 +20,11 @@ import {
   createArc,
   extractFacts,
   isFinalAct,
+  reviseArc,
 } from "./stages.js";
+
+/** Accepted scenes without beat progress before the Architect revises the arc. */
+const DRIFT_THRESHOLD = 3;
 import { writeScene } from "./writer.js";
 
 export type TurnResult =
@@ -68,6 +72,7 @@ export class Director {
       scenes: Object.fromEntries(anchor),
       signals: [],
       canon: [],
+      scenesSinceBeatProgress: 0,
     };
   }
 
@@ -287,6 +292,28 @@ export class Director {
     }
     if (this.session.arc) {
       this.session.arc = advanceArc(this.session.arc, advancesBeatId);
+      // Drift detection: if play keeps not advancing the plan, the plan is
+      // wrong — revise the arc rather than dragging the player back to it.
+      this.session.scenesSinceBeatProgress = advancesBeatId
+        ? 0
+        : this.session.scenesSinceBeatProgress + 1;
+      if (
+        this.session.scenesSinceBeatProgress >= DRIFT_THRESHOLD &&
+        this.session.profile &&
+        !opts.skipExtraction // never mid-ending
+      ) {
+        this.log(
+          `arc drift: ${this.session.scenesSinceBeatProgress} scenes without beat progress — revising arc`,
+        );
+        this.session.arc = await reviseArc(
+          this.model,
+          this.session.arc,
+          this.session.profile,
+          this.ledger.active(),
+          `The last ${this.session.scenesSinceBeatProgress} scenes advanced no planned beat — play has drifted from the plan. Revise the arc to follow where the player is actually going.`,
+        );
+        this.session.scenesSinceBeatProgress = 0;
+      }
     }
     this.session.state = enterScene(this.session.state, scene);
     this.touch();
