@@ -155,13 +155,28 @@ export class Director {
     }
   }
 
-  /** Anchor complete: read the player, plan their whole game, seed canon. */
+  /**
+   * Anchor complete: read the player, plan their whole game, seed canon.
+   * On a library replay the session arrives with profile/arc/canon preloaded
+   * as fixed constraints (ADR-0006) — those steps are skipped.
+   */
   private async exitAnchor(): Promise<void> {
-    this.log("anchor complete — profiling player and designing arc");
-    const profile = await buildProfile(this.model, this.session.signals);
+    const isReplay = !!this.session.replayOfBundle;
+    this.log(
+      isReplay
+        ? "anchor complete — replaying a published universe"
+        : "anchor complete — profiling player and designing arc",
+    );
 
-    // Seed canon with the Anchor's hand-written facts + what the player took.
-    this.ledger.append([...ANCHOR_CANON.map((f) => ({ ...f }))], "anchor-box");
+    if (!this.session.profile) {
+      this.session.profile = await buildProfile(this.model, this.session.signals);
+    }
+
+    // Seed the Anchor's hand-written facts (skip when a bundle already carries them).
+    if (this.ledger.all().length === 0) {
+      this.ledger.append([...ANCHOR_CANON.map((f) => ({ ...f }))], "anchor-box");
+    }
+    // What THIS player took from the box is always their own fact.
     for (const item of this.session.state.inventory) {
       this.ledger.append(
         [
@@ -175,12 +190,16 @@ export class Director {
     }
     this.session.canon = [...this.ledger.all()];
 
-    const arc = await createArc(this.model, profile, this.ledger.active());
-    this.session.profile = profile;
-    this.session.arc = arc;
+    if (!this.session.arc) {
+      this.session.arc = await createArc(
+        this.model,
+        this.session.profile,
+        this.ledger.active(),
+      );
+    }
     this.session.phase = "generated";
     this.log(
-      `profile: ${profile.genre.primary} (${profile.genre.confidence}) · arc: ${arc.premise.slice(0, 80)}…`,
+      `profile: ${this.session.profile.genre.primary} · arc: ${this.session.arc.premise.slice(0, 80)}…`,
     );
   }
 

@@ -1,0 +1,19 @@
+{
+  "name": "@unwritten/play-cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "start": "tsx src/main.ts"
+  },
+  "dependencies": {
+    "@unwritten/content": "*",
+    "@unwritten/director": "*",
+    "@unwritten/library": "*",
+    "@unwritten/schema": "*"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0"
+  }
+}

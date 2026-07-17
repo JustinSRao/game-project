@@ -67,3 +67,12 @@ A library replay loads the creator's canon + arc as immutable constraints; scene
 dialogue, and minor characters are regenerated per player. **Why:** this is the identity
 of the product — "the same game, but your playthrough" — and it keeps replay cost bounded
 (asset cache ships with the bundle; heavy planning work is already done).
+
+## ADR-0007: File-based persistence until the library goes multi-user
+
+**Status:** Accepted · 2026-07-17
+
+Sessions and universe bundles are JSON files under `UNWRITTEN_HOME` (default
+`~/.unwritten`), one file per object, validated on read. **Why:** zero infrastructure
+while the product is single-player-local; schemas already guarantee integrity; swapping in
+a database later is contained inside `packages/library`.

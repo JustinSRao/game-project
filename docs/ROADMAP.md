@@ -3,33 +3,36 @@
 Phases are cumulative; each ends with something playable. Don't start a phase's polish
 before the previous phase's loop is proven.
 
-## Phase 0 — Foundation (current)
+## Phase 0 — Foundation
 
 - [x] Repo, docs, Claude skills, decision records
 - [x] `packages/schema`: Scene DSL v0 (Zod) — narration, dialogue, choices, free text,
       flags/inventory effects, art requests (unused for now), transitions
-- [ ] `packages/engine`: pure reducer over (GameState, SceneSpec, PlayerAction), fully
+- [x] `packages/engine`: pure reducer over (GameState, SceneSpec, PlayerAction), fully
       unit-tested, zero AI dependencies
-- [ ] Golden SceneSpec fixtures that double as DSL documentation
+- [x] Golden SceneSpec fixtures that double as DSL documentation
 
 ## Phase 1 — The text loop (prove the concept)
 
 The whole vision, minus graphics, in a terminal/basic web UI.
 
-- [ ] Hand-write the **Anchor** as a set of fixed SceneSpecs (the only authored content)
-- [ ] Director v0: Profiler + Scene Writer (no Architect yet) — play signals in, next
-      SceneSpec out, structured outputs + Zod validation + regeneration on failure
-- [ ] Canon Ledger v0: fact extraction per accepted scene, keyword retrieval into prompts
+- [x] Hand-write the **Anchor** as a set of fixed SceneSpecs (the only authored content)
+- [x] Director v0: Profiler + Scene Writer — play signals in, next SceneSpec out,
+      structured outputs + Zod validation + regeneration on failure
+- [x] Canon Ledger v0: fact extraction per accepted scene, entity-first retrieval
+- [x] `apps/play-cli`: playable terminal loop (new/resume/library/replay)
 - [ ] Play a 20–30 minute session that visibly *becomes a different genre* depending on
-      how the Anchor is played — this is the go/no-go demo
+      how the Anchor is played — **the go/no-go demo (needs live API playtesting)**
 
 ## Phase 2 — Whole-game coherence
 
-- [ ] Architect: full-game Story Arc, revision-on-derailment, planted setups → payoffs
-- [ ] Continuity Checker (Haiku) gating scene acceptance against canon
-- [ ] Endings: the Arc drives toward a real conclusion; playthroughs complete
-- [ ] Speculative generation + streaming; latency good enough to feel like a game
-- [ ] Session persistence: quit and resume a playthrough
+- [x] Architect: full-game Story Arc, act advancement, planted setups → payoffs
+      (revision-on-derailment prompt exists; wiring it to a trigger is open)
+- [x] Continuity Checker (Haiku) gating scene acceptance against canon
+- [x] Endings: final-act gating, server-owned termination; playthroughs complete
+- [ ] Speculative generation + streaming narration; latency good enough to feel
+      like a game (deferred — the biggest open Phase 2 item)
+- [x] Session persistence: quit and resume a playthrough
 
 ## Phase 3 — Presentation
 
@@ -41,8 +44,8 @@ The whole vision, minus graphics, in a terminal/basic web UI.
 
 ## Phase 4 — The library
 
-- [ ] Universe Bundle export at playthrough end
-- [ ] Import/replay: canon + arc as fixed constraints, fresh scene generation
+- [x] Universe Bundle export at playthrough end (local library on disk)
+- [x] Import/replay: canon + arc as fixed constraints, fresh scene generation
 - [ ] Public library service: browse, play free, attribution to creator
 - [ ] Accounts, moderation/report pipeline, content policy for published bundles
 - [ ] Cost model for free play (this is the hard open question of Phase 4)
