@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { PlayerProfile, SessionSave, StoryArc } from "@unwritten/schema";
+import type { PlayerProfile, SessionSave, StoryArc, StyleBible } from "@unwritten/schema";
 import {
   Director,
   type ModelClient,
@@ -72,6 +72,15 @@ const arc: StoryArc = {
   plannedEnding: { tone: "bittersweet", summary: "The player pays with a memory." },
 };
 
+const styleBible: StyleBible = {
+  paletteName: "wet asphalt",
+  colors: ["#0a0a0c", "#232733", "#4a5266", "#8a94a6", "#d6d9e0", "#b8543a"],
+  gridSize: 32,
+  outline: "dark",
+  perspective: "side-on, eye level",
+  keywords: ["rain-slick", "neon-smeared", "cigarette haze"],
+};
+
 function endedSession(): SessionSave {
   const base = Director.newSession("finished-run");
   return {
@@ -79,6 +88,7 @@ function endedSession(): SessionSave {
     phase: "ended",
     profile,
     arc,
+    styleBible,
     canon: [
       {
         id: "fact-0001",
@@ -113,6 +123,8 @@ describe("bundle export / import / replay", () => {
     const loaded = readBundle(path);
     expect(loaded.manifest.title).toBe("The Toll Road");
     expect(loaded.canon).toHaveLength(1);
+    // The look is part of the universe's identity and must survive the trip.
+    expect(loaded.styleBible?.paletteName).toBe("wet asphalt");
     expect(listBundles().some((b) => b.title === "The Toll Road")).toBe(true);
   });
 
@@ -141,6 +153,9 @@ describe("bundle export / import / replay", () => {
     await d.handleAction({ type: "choice", choiceId: "watch-quietly" });
     await d.handleAction({ type: "choice", choiceId: "press-smoke" });
     expect(fake.calls).toBe(0);
+
+    // A replay inherits the creator's locked look — the stylist never reruns.
+    expect(session.styleBible?.paletteName).toBe("wet asphalt");
 
     // Anchor exit on a replay: writer + checker + extractor only.
     fake.queue.push(

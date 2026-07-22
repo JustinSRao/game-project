@@ -7,6 +7,7 @@ import {
   FakeModelClient,
   makeArc,
   makeProfile,
+  makeStyleBible,
   makeWriterOutput,
 } from "./helpers.js";
 import type { WriterContext } from "../src/prompts.js";
@@ -138,10 +139,11 @@ describe("Director — full session flow", () => {
     expect(r.kind).toBe("scene");
     expect(fake.calls).toHaveLength(0);
 
-    // Anchor exit: profiler, architect, writer, checker, extractor
+    // Anchor exit: profiler, architect, stylist, writer, checker, extractor
     fake.push(
       makeProfile(),
       makeArc(),
+      makeStyleBible(),
       makeWriterOutput("first-generated", { advancesBeatId: "beat-bell" }),
       { ok: true },
       { facts: [{ statement: "The bell belongs to the Lantern Order.", entities: ["the-bell"] }] },
@@ -149,11 +151,12 @@ describe("Director — full session flow", () => {
     r = await d.handleAction({ type: "choice", choiceId: "take-knife" });
     if (r.kind !== "scene") throw new Error("expected scene");
     expect(r.scene.id).toBe("first-generated");
-    expect(fake.calls).toHaveLength(5);
+    expect(fake.calls).toHaveLength(6);
 
     const s = d.getSession();
     expect(s.phase).toBe("generated");
     expect(s.profile?.genre.primary).toBe("folk horror");
+    expect(s.styleBible?.paletteName).toBe("ash and lantern");
     // 6 anchor facts + 1 item fact + 1 extracted
     expect(s.canon).toHaveLength(8);
     expect(s.state.currentSceneId).toBe("first-generated");
@@ -178,14 +181,14 @@ describe("Director — full session flow", () => {
     const d = new Director({ model: fake });
     await d.handleAction({ type: "choice", choiceId: "join-fire" });
     await d.handleAction({ type: "choice", choiceId: "share-bread" });
-    fake.push(makeProfile(), makeArc(), makeWriterOutput("first-generated"), { ok: true }, { facts: [] });
+    fake.push(makeProfile(), makeArc(), makeStyleBible(), makeWriterOutput("first-generated"), { ok: true }, { facts: [] });
     await d.handleAction({ type: "choice", choiceId: "take-key" });
 
     fake.push(makeWriterOutput("free-response"), { ok: true }, { facts: [] });
     const r = await d.handleAction({ type: "freeText", text: "follow the bell sound" });
     if (r.kind !== "scene") throw new Error("expected scene");
     expect(r.scene.id).toBe("free-response");
-    const writerCall = fake.calls[5]!;
+    const writerCall = fake.calls[6]!;
     expect(writerCall.user).toContain("follow the bell sound");
   });
 
@@ -197,6 +200,7 @@ describe("Director — full session flow", () => {
     fake.push(
       makeProfile(),
       makeArc(),
+      makeStyleBible(),
       makeWriterOutput("first-generated", { endingChoice: true }),
       { ok: true },
       { facts: [] },
@@ -208,7 +212,7 @@ describe("Director — full session flow", () => {
     let r = await d.handleAction({ type: "choice", choiceId: "end-it" });
     if (r.kind !== "scene") throw new Error("expected scene");
     expect(r.scene.id).toBe("the-detour");
-    const gateCall = fake.calls[5]!;
+    const gateCall = fake.calls[6]!;
     expect(gateCall.user).toContain("not finished");
 
     // Jump to the final act, then end for real.

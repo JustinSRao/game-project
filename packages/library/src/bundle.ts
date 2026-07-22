@@ -44,6 +44,7 @@ export function exportBundle(session: SessionSave, meta: ExportMeta): UniverseBu
     profileAtAnchorExit: session.profile,
     arc: session.arc,
     canon: session.canon,
+    ...(session.styleBible ? { styleBible: session.styleBible } : {}),
     playedScenes,
   });
 }
@@ -83,6 +84,8 @@ export function newReplaySession(
     profile: bundle.profileAtAnchorExit,
     arc: prepareArcForReplay(bundle.arc),
     canon: [...bundle.canon],
+    // The look is part of the universe's identity, not the playthrough.
+    ...(bundle.styleBible ? { styleBible: bundle.styleBible } : {}),
     replayOfBundle: bundle.manifest.title,
   };
 }

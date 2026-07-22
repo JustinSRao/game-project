@@ -18,6 +18,7 @@ import {
   advanceArc,
   buildProfile,
   createArc,
+  createStyleBible,
   extractFacts,
   isFinalAct,
   reviseArc,
@@ -202,6 +203,18 @@ export class Director {
         this.ledger.active(),
       );
     }
+    // Genre reveal is the only moment the look is decided. A replayed universe
+    // arrives with its style already locked (ADR-0006) — never re-author it.
+    if (!this.session.styleBible) {
+      const style = await createStyleBible(
+        this.model,
+        this.session.profile,
+        this.session.arc,
+        this.log,
+      );
+      if (style) this.session.styleBible = style;
+    }
+
     this.session.phase = "generated";
     this.log(
       `profile: ${this.session.profile.genre.primary} · arc: ${this.session.arc.premise.slice(0, 80)}…`,

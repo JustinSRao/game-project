@@ -1,4 +1,4 @@
-import type { PlayerProfile, StoryArc } from "@unwritten/schema";
+import type { PlayerProfile, StoryArc, StyleBible } from "@unwritten/schema";
 import type { ModelClient, StructuredRequest } from "@unwritten/director";
 
 /**
@@ -92,6 +92,26 @@ export function makeArc(opts: { finalAct?: boolean } = {}): StoryArc {
       tone: "bittersweet",
       summary: "The player can end the fires only by letting the road forget them too.",
     },
+  };
+}
+
+export function makeStyleBible(): StyleBible {
+  return {
+    paletteName: "ash and lantern",
+    colors: [
+      "#0d0b10",
+      "#1f1a24",
+      "#3b3340",
+      "#6b5f6b",
+      "#a89a92",
+      "#e0d6c4",
+      "#c46b3a",
+      "#f2b45c",
+    ],
+    gridSize: 32,
+    outline: "selective",
+    perspective: "side-on, eye level, shallow depth",
+    keywords: ["candlelit", "rain-soaked", "woodsmoke", "worn linen"],
   };
 }
 

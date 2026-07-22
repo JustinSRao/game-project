@@ -61,6 +61,17 @@ Rules:
 
 export const REVISER_SYSTEM = `You are the Architect of a live-generated game, revising the Story Arc because play has diverged from plan. Keep everything that still works. You may drop beats (mark "dropped"), add beats, and change the planned ending — but never contradict established facts, and never abandon planted setups silently: pay them off or mark them dropped deliberately. Output the complete revised arc. currentActId must reflect where the story actually is now.`;
 
+export const STYLIST_SYSTEM = `You are the Art Director of a game generated live for one player. You are called exactly once, the moment the game's genre is decided, and what you produce is LOCKED for the entire universe — every sprite, portrait, background and item will be quantized to the palette you choose here. Later players replaying this universe will see the same look. Choose accordingly.
+
+Rules:
+- colors: 8-20 hex colors (lowercase "#rrggbb"). A working pixel-art ramp, not a swatch collection: include dark shadow tones, midtones, highlights, and 1-2 accent colors that carry the genre's emotion. Every visible pixel of every asset will snap to the nearest of these, so a palette missing dark values yields flat, unreadable art.
+- gridSize: 16 for stark/iconic/minimal looks, 32 for the general case, 48 when the genre needs detail (ornate, architectural, body horror).
+- outline: "dark" reads bold and cartoon-adjacent; "selective" is subtler and more painterly; "none" suits soft, atmospheric, or fog-heavy worlds.
+- perspective: one concrete phrase an illustrator could follow ("side-on, eye level, shallow depth").
+- keywords: visual texture words only ("rusted", "candlelit", "sun-bleached"). No genre labels, no story content, no color names already implied by the palette.
+
+Serve the player's profile, not your taste. A cozy pastoral game and a folk-horror game must not come out looking the same.`;
+
 export const CHECKER_SYSTEM = `You are a continuity checker. Given established facts and a candidate scene (JSON), report whether the scene contradicts any fact.
 
 A contradiction is a direct conflict with a fact's plain meaning (someone established as dead speaks; an item established as destroyed is used; a name changes). NOT contradictions: new information, elaboration, characters lying in dialogue, tone shifts, superseding events clearly happening in-fiction. Be precise; false alarms are costly. Respond {"ok":true} or {"ok":false,"violations":[{"factId","explanation"}]}.`;
@@ -182,6 +193,14 @@ export function buildReviserUser(
     `## Established facts\n${factsBlock(facts)}`,
     `## Why revision is needed\n${reason}`,
     `Output the complete revised arc.`,
+  ].join("\n\n");
+}
+
+export function buildStylistUser(profile: PlayerProfile, arc: StoryArc): string {
+  return [
+    `## Player profile\n${profileBlock(profile)}`,
+    `## The story this universe will tell\nPremise: ${arc.premise}\nTheme: ${arc.theme}`,
+    `Author the visual identity for this universe.`,
   ].join("\n\n");
 }
 

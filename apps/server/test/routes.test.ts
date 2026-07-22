@@ -4,7 +4,13 @@ import { join } from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { SceneSpec } from "@unwritten/schema";
 import { buildServer } from "../src/app.js";
-import { FakeModelClient, makeArc, makeProfile, makeWriterOutput } from "./helpers.js";
+import {
+  FakeModelClient,
+  makeArc,
+  makeProfile,
+  makeStyleBible,
+  makeWriterOutput,
+} from "./helpers.js";
 
 // Isolate persisted sessions/bundles from the real ~/.unwritten store, and
 // from other test files, for the lifetime of this suite.
@@ -119,10 +125,12 @@ describe("play loop", () => {
     expect(res.statusCode).toBe(200);
     expect(fake.calls).toHaveLength(0);
 
-    // Taking an item exits the Anchor: profiler, architect, writer, checker, extractor.
+    // Taking an item exits the Anchor: profiler, architect, stylist, writer,
+    // checker, extractor.
     fake.push(
       makeProfile(),
       makeArc(),
+      makeStyleBible(),
       makeWriterOutput("first-generated", { advancesBeatId: "beat-bell" }),
       { ok: true },
       { facts: [{ statement: "The bell belongs to the Lantern Order.", entities: ["the-bell"] }] },
@@ -136,7 +144,7 @@ describe("play loop", () => {
     const turnBody = res.json() as { kind: string; scene?: { id: string } };
     expect(turnBody.kind).toBe("scene");
     expect(turnBody.scene?.id).toBe("first-generated");
-    expect(fake.calls).toHaveLength(5);
+    expect(fake.calls).toHaveLength(6);
 
     // The turn was persisted — a fresh session-manager (fresh app) can resume it.
     const app2 = buildServer({ model: fake });

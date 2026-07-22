@@ -34,6 +34,13 @@ export const DIRECTOR_CONFIG = {
     effort: "low",
     adaptiveThinking: true,
   },
+  /** Authors the universe's visual identity once, at genre reveal. */
+  stylist: {
+    model: "claude-opus-4-8",
+    maxTokens: 3000,
+    effort: "low",
+    adaptiveThinking: true,
+  },
   /** Continuity Checker — cheap, classification-shaped. */
   checker: {
     model: "claude-haiku-4-5",

@@ -4,6 +4,7 @@ import {
   FakeModelClient,
   makeArc,
   makeProfile,
+  makeStyleBible,
   makeWriterOutput,
 } from "./helpers.js";
 
@@ -15,7 +16,7 @@ describe("arc drift revision", () => {
     await d.handleAction({ type: "choice", choiceId: "share-bread" });
 
     // Anchor exit (scene 1 advances no beat → counter 1)
-    fake.push(makeProfile(), makeArc(), makeWriterOutput("gen-one"), { ok: true }, { facts: [] });
+    fake.push(makeProfile(), makeArc(), makeStyleBible(), makeWriterOutput("gen-one"), { ok: true }, { facts: [] });
     await d.handleAction({ type: "choice", choiceId: "take-knife" });
     expect(d.getSession().scenesSinceBeatProgress).toBe(1);
 
@@ -41,7 +42,7 @@ describe("arc drift revision", () => {
     await d.handleAction({ type: "choice", choiceId: "join-fire" });
     await d.handleAction({ type: "choice", choiceId: "share-bread" });
 
-    fake.push(makeProfile(), makeArc(), makeWriterOutput("gen-one"), { ok: true }, { facts: [] });
+    fake.push(makeProfile(), makeArc(), makeStyleBible(), makeWriterOutput("gen-one"), { ok: true }, { facts: [] });
     await d.handleAction({ type: "choice", choiceId: "take-knife" });
 
     fake.push(

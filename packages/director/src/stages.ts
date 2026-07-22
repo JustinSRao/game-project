@@ -6,6 +6,7 @@ import {
   PlaySignal,
   SceneSpec,
   StoryArc,
+  StyleBible,
 } from "@unwritten/schema";
 import type { z } from "zod";
 import { DIRECTOR_CONFIG } from "./config.js";
@@ -16,11 +17,13 @@ import {
   EXTRACTOR_SYSTEM,
   PROFILER_SYSTEM,
   REVISER_SYSTEM,
+  STYLIST_SYSTEM,
   buildArchitectUser,
   buildCheckerUser,
   buildExtractorUser,
   buildProfilerUser,
   buildReviserUser,
+  buildStylistUser,
 } from "./prompts.js";
 
 export async function buildProfile(
@@ -63,6 +66,31 @@ export async function reviseArc(
     schema: StoryArc,
   });
   return normalizeArc(revised);
+}
+
+/**
+ * Author the universe's locked visual identity, once, at genre reveal.
+ * Best-effort: art is cosmetic, so a failure here degrades to a game with no
+ * illustrations rather than blocking play (CLAUDE.md: every generation call
+ * site needs a graceful degradation path).
+ */
+export async function createStyleBible(
+  model: ModelClient,
+  profile: PlayerProfile,
+  arc: StoryArc,
+  log?: (msg: string) => void,
+): Promise<StyleBible | undefined> {
+  try {
+    return await model.generateStructured({
+      role: DIRECTOR_CONFIG.stylist,
+      system: STYLIST_SYSTEM,
+      user: buildStylistUser(profile, arc),
+      schema: StyleBible,
+    });
+  } catch (err) {
+    log?.(`style bible generation failed — continuing without art: ${String(err)}`);
+    return undefined;
+  }
 }
 
 /** Server-side sanity: currentActId must exist; default to the first act. */

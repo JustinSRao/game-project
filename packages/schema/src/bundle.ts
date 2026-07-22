@@ -58,6 +58,8 @@ export const SessionSave = z.object({
   signals: z.array(PlaySignal),
   profile: PlayerProfile.optional(),
   arc: StoryArc.optional(),
+  /** Authored once at genre reveal, then locked for the life of the universe. */
+  styleBible: StyleBible.optional(),
   canon: z.array(CanonFact).default([]),
   /** Set when this session is a replay of a published universe. */
   replayOfBundle: z.string().min(1).max(120).optional(),
