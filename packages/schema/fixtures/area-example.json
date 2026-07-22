@@ -1,0 +1,95 @@
+{
+  "dslVersion": 1,
+  "id": "moonwell-clearing",
+  "name": "The Moonwell Clearing",
+  "description": "The trees fall away around a pond so still it holds the daylight like a second sky. A worn path cuts through the grass toward the south, and the air smells faintly of crushed herbs.",
+  "path": "her",
+  "width": 10,
+  "height": 8,
+  "tiles": [
+    { "id": "grass", "name": "meadow grass", "walkable": true, "color": "#38b764", "artTag": "fantasy-grass" },
+    { "id": "tree", "name": "old pine", "walkable": false, "color": "#257179", "artTag": "fantasy-pine" },
+    { "id": "water", "name": "moonwell water", "walkable": false, "color": "#3b5dc9", "artTag": "fantasy-water" },
+    { "id": "path", "name": "worn path", "walkable": true, "color": "#ffcd75", "artTag": "fantasy-path" }
+  ],
+  "ground": [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 3, 0, 0, 0, 1],
+    [1, 0, 2, 2, 0, 3, 0, 0, 0, 1],
+    [1, 0, 2, 2, 0, 3, 3, 3, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 3, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 3, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 3, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 3, 1, 1]
+  ],
+  "playerSpawn": { "x": 5, "y": 1 },
+  "entities": [
+    {
+      "id": "herbalist-shizuku",
+      "name": "Shizuku",
+      "description": "An elf herbalist kneeling among cuttings, sleeves tied back, moving with unhurried care.",
+      "role": "character",
+      "pos": { "x": 3, "y": 4 },
+      "color": "#a7f070",
+      "nameMeaning": "雫 (shizuku, \"droplet\") — patient and quiet; she heals the way water wears stone, one drop at a time",
+      "art": {
+        "kind": "sprite",
+        "subject": "elf herbalist with tied-back sleeves kneeling among herb cuttings",
+        "mood": "calm, watchful",
+        "sizeClass": "medium"
+      },
+      "interaction": {
+        "verb": "talk",
+        "lines": [
+          { "speakerId": "herbalist-shizuku", "text": "Careful where you step — the moonherb only flowers once a season." },
+          { "speakerId": "herbalist-shizuku", "text": "You're the one the summons dragged through, aren't you. The pond went bright the night you arrived." }
+        ],
+        "choices": [
+          {
+            "id": "ask-about-summons",
+            "label": "\"You know about the summoning?\"",
+            "reply": "Everyone this side of the ridge knows. Her Grace does not summon gently — and she does not summon for nothing."
+          },
+          {
+            "id": "ask-about-herbs",
+            "label": "Ask what the herbs are for.",
+            "reply": "Wounds, mostly. There are more of those than there used to be.",
+            "effects": [{ "op": "setFlag", "key": "learned-of-wounded", "value": true }]
+          }
+        ],
+        "effects": [],
+        "once": false
+      }
+    },
+    {
+      "id": "moonherb",
+      "name": "Moonherb",
+      "description": "A pale flower growing at the pond's edge, petals faintly luminous.",
+      "role": "item",
+      "pos": { "x": 2, "y": 5 },
+      "color": "#f4f4f4",
+      "interaction": {
+        "verb": "take",
+        "lines": [
+          { "speakerId": "narrator", "text": "You ease the moonherb out of the soil. The glow does not fade." }
+        ],
+        "choices": [],
+        "effects": [{ "op": "addItem", "item": "moonherb", "name": "Moonherb" }],
+        "once": true,
+        "afterText": "Only a shallow depression in the soil remains."
+      }
+    }
+  ],
+  "portals": [
+    {
+      "id": "deer-track-south",
+      "pos": { "x": 7, "y": 7 },
+      "label": "a deer track winding south",
+      "transition": {
+        "type": "generate",
+        "hint": "The track leads toward the village Shizuku mentioned; wounded travelers have been coming from there."
+      }
+    }
+  ],
+  "onEnterEffects": []
+}

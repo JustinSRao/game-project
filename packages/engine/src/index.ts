@@ -12,6 +12,8 @@ import type {
  * All intelligence lives in the Director; all reliability lives here.
  */
 
+export * from "./area.js";
+
 export class EngineError extends Error {
   constructor(message: string) {
     super(message);

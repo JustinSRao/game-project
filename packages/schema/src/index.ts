@@ -1,4 +1,5 @@
 export * from "./scene.js";
+export * from "./area.js";
 export * from "./state.js";
 export * from "./profile.js";
 export * from "./arc.js";
