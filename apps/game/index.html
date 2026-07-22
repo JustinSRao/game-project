@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unwritten</title>
+    <style>
+      :root {
+        --bg: #0b0c12;
+        --panel: #14161f;
+        --edge: #2c2f3f;
+        --text: #e8e6df;
+        --dim: #9a97a8;
+        --accent: #ffcd75;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: Georgia, "Times New Roman", serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      #stage { position: relative; }
+      #app canvas { display: block; image-rendering: pixelated; }
+      #hud {
+        position: absolute;
+        top: 10px;
+        left: 12px;
+        right: 12px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        pointer-events: none;
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 13px;
+        color: var(--dim);
+        text-shadow: 0 1px 2px #000;
+      }
+      #hud .prompt { color: var(--accent); }
+      #panel {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        background: color-mix(in srgb, var(--panel) 92%, transparent);
+        border: 1px solid var(--edge);
+        border-radius: 6px;
+        padding: 14px 18px;
+        min-height: 88px;
+        display: none;
+        flex-direction: column;
+        gap: 8px;
+      }
+      #panel.open { display: flex; }
+      #panel .speaker {
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+      #panel .line { font-size: 16px; line-height: 1.55; }
+      #panel .choices { display: flex; flex-direction: column; gap: 4px; margin-top: 2px; }
+      #panel .choice { font-size: 15px; color: var(--text); }
+      #panel .choice .key {
+        font-family: ui-monospace, Consolas, monospace;
+        color: var(--accent);
+        margin-right: 8px;
+      }
+      #panel .hint {
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 11px;
+        color: var(--dim);
+        align-self: flex-end;
+      }
+      #veil {
+        position: absolute;
+        inset: 0;
+        background: color-mix(in srgb, var(--bg) 94%, transparent);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px;
+      }
+      #veil.open { display: flex; }
+      #veil .inner { max-width: 560px; display: flex; flex-direction: column; gap: 16px; }
+      #veil h1 { font-size: 22px; font-weight: normal; color: var(--accent); letter-spacing: 0.04em; }
+      #veil p { font-size: 15px; line-height: 1.6; color: var(--text); }
+      #veil .hint { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--dim); }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <div id="app"></div>
+      <div id="hud">
+        <span id="hud-area"></span>
+        <span id="hud-prompt" class="prompt"></span>
+      </div>
+      <div id="panel"></div>
+      <div id="veil"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

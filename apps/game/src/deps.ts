@@ -1,0 +1,21 @@
+/**
+ * Single import surface for the monorepo packages, so the Phaser code reads
+ * as presentation over a clean API (ADR-0010: rules live in the engine).
+ */
+export {
+  applyConvoChoice,
+  enterArea,
+  initialAreaState,
+  interactionUsed,
+  portalUnderPlayer,
+  reachableEntities,
+  runInteraction,
+  tryMove,
+  type Direction,
+  type InteractionOutcome,
+} from "@unwritten/engine";
+export {
+  getPrologueArea,
+  getPrologueAreas,
+  PROLOGUE_ENTRY_ID,
+} from "@unwritten/content";
