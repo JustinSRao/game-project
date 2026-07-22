@@ -126,9 +126,10 @@ describe("POST /api/sessions — no API key configured", () => {
   const saved = new Map(KEYS.map((k) => [k, process.env[k]]));
 
   beforeEach(() => {
-    // Every provider key must be absent, or a developer's own key would make
-    // this test build a real client and hit the network.
+    // Deleting the keys is not enough: a developer with a real .env would have
+    // it loaded back in by createModelClient. "none" forces browse-only mode.
     for (const k of KEYS) delete process.env[k];
+    process.env["UNWRITTEN_PROVIDER"] = "none";
   });
   afterAll(() => {
     for (const [k, v] of saved) if (v !== undefined) process.env[k] = v;

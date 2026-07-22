@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { OPENAI_MODELS } from "./config.js";
+import { OPENAI_MODELS, type RoleConfig } from "./config.js";
 import { ModelOutputError, type ModelClient, type StructuredRequest } from "./modelClient.js";
 import { stripNulls, toOpenAISchema, unwrapRoot } from "./openaiSchema.js";
 
@@ -39,9 +39,7 @@ export class OpenAIModelClient implements ModelClient {
     const response = await this.client.chat.completions.create({
       model: OPENAI_MODELS[req.role.tier],
       max_completion_tokens: req.role.maxTokens,
-      ...(req.role.effort || req.role.adaptiveThinking
-        ? { reasoning_effort: reasoningEffort(req.role.effort) }
-        : {}),
+      reasoning_effort: reasoningEffort(req.role),
       response_format: {
         type: "json_schema",
         json_schema: { name: "unwritten_output", strict: true, schema },
@@ -78,18 +76,25 @@ export class OpenAIModelClient implements ModelClient {
 }
 
 /**
- * Our effort scale is Anthropic-shaped; OpenAI accepts low/medium/high. The
- * two levels above "high" collapse onto it.
+ * Our effort scale is Anthropic-shaped; OpenAI accepts low/medium/high, and
+ * the two levels above "high" collapse onto it.
+ *
+ * Always sent explicitly. Reasoning tokens are drawn from the same budget as
+ * the output, so letting a role that never asked to think fall through to the
+ * API's default would let reasoning eat a small max_completion_tokens and
+ * return nothing — the cheap roles are classification-shaped and get "low".
  */
-function reasoningEffort(effort: string | undefined): "low" | "medium" | "high" {
-  switch (effort) {
+function reasoningEffort(role: RoleConfig): "low" | "medium" | "high" {
+  switch (role.effort) {
     case "low":
       return "low";
     case "high":
     case "xhigh":
     case "max":
       return "high";
-    default:
+    case "medium":
       return "medium";
+    default:
+      return role.adaptiveThinking ? "medium" : "low";
   }
 }
