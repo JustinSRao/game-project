@@ -89,6 +89,14 @@ Everything else — the leads he chases, who believes him and who turns on him, 
 of Yuna leak through, how close he gets to the truth — is generated per playthrough,
 shaped by the player profile.
 
+**Presentation pillar — the game forgets her too (ADR-0015).** On his path, the
+interface itself participates in the erasure: Yuna's portrait absent from menus that
+should hold it, save-slot labels quietly rewriting themselves, dialogue-log entries about
+her vanishing between sessions, conversations replaying as if they never happened. The
+player should sometimes doubt the *game* remembers her — mirroring Kaito doubting his own
+mind. Strictly sandboxed to the game's own UI and data (never real files), never actually
+destructive, and unique to his path.
+
 ## The Reunion (endgame — multiplayer, the "DLC")
 
 - A solo playthrough of either path runs a **complete arc** with a real climax and a
@@ -113,6 +121,12 @@ shaped by the player profile.
 | Path B seeds: world forgot her, only Kaito remembers, goal = find and save her | The investigation, the people, the traces, the psychological texture |
 | Both paths end at a threshold; only the Reunion resolves | The entire shape of the road to that threshold |
 | The two protagonists and their love | Every other character in the game |
+
+## Naming (ADR-0014)
+
+Every named character in the game — both worlds — carries a **Japanese name whose
+meaning connects to their personality**, chosen via the `name-creator` skill and
+recorded (name, kanji, trait link) as a canon fact at first appearance.
 
 ## Rules for the Director
 

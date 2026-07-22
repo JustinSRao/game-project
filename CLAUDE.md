@@ -40,9 +40,15 @@ encodes the project's invariants.
 8. **No asset enters the game without the Asset Studio gate** — `processArt`
    normalization + validation (size, palette, transparency, license metadata), whatever
    the source: CC0 import, sprite-as-data, or gpt-image-2 (ADR-0011).
-9. **Zero spend beyond the OpenAI API.** No paid services, infra, or assets — free and
-   open-source everything else. If a task seems to need paid anything, stop and ask the
-   owner.
+9. **Zero spend beyond the OpenAI API and approved distribution costs** (Apple
+   Developer Program, distribution domain — ADR-0013). No other paid services, infra,
+   or assets — free and open-source everything else. If a task seems to need paid
+   anything, stop and ask the owner.
+10. **Character names follow ADR-0014**: Japanese, personality-derived, via the
+    `name-creator` skill; the name→trait link is a canon fact.
+11. **Path B interface tricks are sandboxed (ADR-0015).** Diegetic "corruption" only
+    ever touches the game's own UI/data directory, is never actually destructive, and
+    is DSL-mediated — never improvised at the UI layer.
 
 ## Model API usage (for Director code)
 

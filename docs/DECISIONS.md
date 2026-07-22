@@ -197,3 +197,50 @@ cost/moderation questions die with it.
 is removed when it gets in the way, not preserved. The bundle format's lesson (canon must
 export/merge cleanly) is retained as a requirement on both paths' canon for the
 multiplayer Reunion, where two playthroughs' canons merge into one finale.
+
+## ADR-0013: Zero-spend rule — owner-approved exceptions for distribution
+
+**Status:** Accepted · 2026-07-22 · amends the zero-spend rule (ADR-0011 context, VISION)
+
+The owner has paid for the **Apple Developer Program** and will pay for a **domain** to
+distribute desktop builds from. These join the OpenAI API as the only permitted spend.
+Everything else remains free/open-source. Google Play's one-time fee is *not* yet
+approved — ask the owner when Android distribution becomes real.
+
+## ADR-0014: Every character name is Japanese and personality-derived
+
+**Status:** Accepted · 2026-07-22 · owner directive
+
+All named characters — both paths, both worlds, main cast and one-scene NPCs — receive
+Japanese names whose kanji meanings connect to their personality (directly or as
+intentional irony). The process, examples, and Director-prompt integration live in the
+`name-creator` skill; the name/kanji/trait link is recorded as a canon fact at first
+appearance.
+
+**Why:** owner directive; it also gives the Continuity Checker a concrete handle on
+character identity (a name is now a claim about personality that later scenes must
+honor), and it makes her fantasy world read as anime-fantasy, which is the product's
+register.
+
+## ADR-0015: Path B's interface lies, but the sandbox never does
+
+**Status:** Accepted · 2026-07-22
+
+His path may use **diegetic interface corruption** as a storytelling device (owner-loved,
+DDLC-inspired): the game's own UI participates in the world's forgetting of Yuna — her
+portrait missing from menus, save-slot labels quietly changing, dialogue-log entries
+about her vanishing, NPCs repeating conversations as if they never happened.
+
+**Hard constraints:**
+
+- **Sandboxed absolutely.** Effects only ever touch the game's own UI state and the
+  game's own save/data directory. Nothing outside it is read, written, renamed, or
+  deleted — no real user files, ever. Anything that *looks* like file manipulation is
+  fiction rendered by the UI.
+- **Never actually destructive.** A "corrupted" or "missing" save is presentation over
+  intact data; the player can always really quit, really resume, and really finish. The
+  always-playable invariant outranks the bit.
+- **Engine-mediated like everything else:** these are DSL-level effects (a `metaFx`
+  vocabulary, Phase 6) emitted by the Director, validated, and rendered by the client —
+  never model-driven improvisation at the UI layer.
+- Path A does not use these effects; the contrast is the point.

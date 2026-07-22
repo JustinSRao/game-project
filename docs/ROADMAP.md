@@ -97,6 +97,9 @@ Goal: both paths playable start → threshold ending, feeling like a real game.
       asset DB; companions/antagonists that persist and develop across the playthrough
 - [ ] Latency: speculative generation of adjacent areas, streamed dialogue, in-fiction
       masking; art always placeholder-first
+- [ ] **Path B meta-effects (`metaFx`, ADR-0015):** the DSL vocabulary for diegetic
+      interface corruption — missing portraits, rewriting save labels, vanishing
+      dialogue-log entries — sandboxed, non-destructive, engine-mediated
 - [ ] Path endings: threshold finales per STORY.md; full playthroughs of both paths
 - [ ] Cost guardrails: per-session token budgets, graceful degradation
 
@@ -112,9 +115,9 @@ Goal: both paths playable start → threshold ending, feeling like a real game.
 
 - [ ] Capacitor builds: iOS, Android
 - [ ] Tauri builds: Windows, macOS
-- [ ] Distribution from the project owner's website; free toolchains only (zero-spend
-      rule). App-store costs (Apple's $99/yr etc.) are a decision for the owner when we
-      get there — not assumed
+- [ ] Distribution from the project owner's website (domain: owner-approved spend,
+      ADR-0013); Apple Developer Program already paid by the owner. Google Play's fee
+      not yet approved — ask when Android distribution becomes real
 
 ## Open questions (revisit each phase)
 

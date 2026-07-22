@@ -63,9 +63,10 @@ These hold no matter how the implementation evolves:
   contradictions are bugs.
 - **It must always be playable.** A generation failure may cost latency, never a crash or
   a nonsense state (the data-not-code rule guarantees this).
-- **Zero spend beyond the model API.** No paid services, infra, or assets: the OpenAI API
-  calls that drive the story (and, within the same budget, `gpt-image-2` art generation)
-  are the only money this project costs. Everything else is free/open-source.
+- **Zero spend beyond the model API and distribution.** The OpenAI API (story +
+  `gpt-image-2` art), the Apple Developer Program, and a distribution domain (both
+  owner-approved, ADR-0013) are the only money this project costs. Everything else is
+  free/open-source.
 
 ## Presentation
 
