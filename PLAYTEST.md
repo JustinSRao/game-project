@@ -9,6 +9,16 @@ it's actually working. No prior knowledge of the codebase needed.
 
 You need **Node 20+** and an **OpenAI API key**.
 
+**Everything below runs from the repo root** — the directory containing `package.json`,
+`packages/`, and `apps/`. Note it's nested one level down:
+
+```sh
+cd C:\Users\jrao03\Documents\vscode\personal\Game_project\game-project
+```
+
+> If you see `npm error enoent Could not read package.json`, you're one directory too
+> high. `Game_project` is just a container; the project is `Game_project\game-project`.
+
 ```sh
 npm install
 cp .env.example .env
@@ -216,6 +226,12 @@ role in `packages/director/src/config.ts`.
 **Schema validation errors in the log, but play continues** — working as designed. Invalid
 output is rejected and regenerated with the errors fed back, up to twice. You should never
 see a broken scene; you may see the retry.
+
+**`npm error enoent Could not read package.json`** — wrong directory. Run from
+`Game_project\game-project`, not `Game_project`.
+
+**`cp` is not recognized** (Windows PowerShell) — use `copy .env.example .env`, or just
+copy the file in Explorer.
 
 **Something else** — run `npm test` from the root. 101 tests, no API key needed. If those
 pass, the problem is configuration or the API, not the game logic.
