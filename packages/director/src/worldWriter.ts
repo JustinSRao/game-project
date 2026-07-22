@@ -1,12 +1,24 @@
-import { AreaSpec, CanonFact, CheckerVerdict, Slug } from "@unwritten/schema";
+import {
+  AreaSpec,
+  CanonFact,
+  CheckerVerdict,
+  FactExtraction,
+  PlayerProfile,
+  Slug,
+  StoryArc,
+  StoryPath,
+} from "@unwritten/schema";
 import { validateAreaIntegrity } from "@unwritten/engine";
 import { z } from "zod";
 import { DIRECTOR_CONFIG } from "./config.js";
 import type { ModelClient } from "./modelClient.js";
-import { CHECKER_SYSTEM } from "./prompts.js";
+import { CHECKER_SYSTEM, EXTRACTOR_SYSTEM } from "./prompts.js";
+import { normalizeArc } from "./stages.js";
 import {
+  WORLD_ARCHITECT_SYSTEM,
   WORLD_WRITER_SYSTEM,
   buildAreaCheckerUser,
+  buildWorldArchitectUser,
   buildWorldWriterUser,
   type WorldWriterContext,
 } from "./worldPrompts.js";
@@ -30,6 +42,47 @@ export interface WriteAreaResult {
   advancesBeatId?: string;
   /** True when the continuity check was still failing on the last attempt (degraded accept). */
   continuityDegraded: boolean;
+}
+
+/** Plan a path's arc within STORY.md's rails (threshold ending, gated reveals). */
+export async function createWorldArc(
+  model: ModelClient,
+  path: Exclude<StoryPath, "shared">,
+  profile: PlayerProfile,
+  facts: readonly CanonFact[],
+): Promise<StoryArc> {
+  const arc = await model.generateStructured({
+    role: DIRECTOR_CONFIG.architect,
+    system: WORLD_ARCHITECT_SYSTEM,
+    user: buildWorldArchitectUser(path, profile, facts),
+    schema: StoryArc,
+  });
+  return normalizeArc(arc);
+}
+
+/** Fact extraction for areas — best-effort like extractFacts: never breaks play. */
+export async function extractAreaFacts(
+  model: ModelClient,
+  area: AreaSpec,
+  existing: readonly CanonFact[],
+  log?: (msg: string) => void,
+): Promise<z.infer<typeof FactExtraction>["facts"]> {
+  try {
+    const out = await model.generateStructured({
+      role: DIRECTOR_CONFIG.extractor,
+      system: EXTRACTOR_SYSTEM,
+      user: [
+        `## Existing facts (for supersedes references)\n${existing.length ? existing.map((f) => `- [${f.id}] ${f.statement}`).join("\n") : "(none)"}`,
+        `## Scene\n${JSON.stringify(area)}`,
+        `Extract the new canon facts this scene establishes.`,
+      ].join("\n\n"),
+      schema: FactExtraction,
+    });
+    return out.facts;
+  } catch (err) {
+    log?.(`fact extraction failed for area ${area.id}: ${String(err)}`);
+    return [];
+  }
 }
 
 export async function checkAreaContinuity(

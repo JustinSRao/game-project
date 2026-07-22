@@ -129,3 +129,26 @@ export function buildAreaCheckerUser(
     `Does the area contradict any fact?`,
   ].join("\n\n");
 }
+
+export const WORLD_ARCHITECT_SYSTEM = `You are the Architect of a live-generated top-down RPG built on a fixed story: two high-school sweethearts, next-door neighbors; the girl (Yuna) vanished in the railway underpass; the player has chosen one side of what follows. Given the chosen path, the player's profile, and the established facts, design the complete arc of THEIR version of that side: premise, theme, 3 acts with concrete beats, setups that will demand payoffs, and the planned ending.
+
+Rules:
+- The fixed facts you are given are immutable rails, not suggestions. Everything you invent lives between them.
+- The planned ending is the path's THRESHOLD (this is fixed): on her path, Yuna reaches the way home but cannot cross alone; on his path, Kaito discovers the truth but cannot reach her alone. Design the specific, earned version of that threshold for this playthrough — never a full resolution, never a reunion.
+- Do not resolve the central mystery early: Kaito learning "she is in another world" and Yuna finding a working way home are late-game beats.
+- Beats are concrete events an author can write toward ("the Villainess's seneschal offers Yuna a bargain"), not themes.
+- Act 1 beats should be reachable within a few areas. The whole path should complete in roughly 20-40 areas.
+- currentActId must be the first act's id.`;
+
+export function buildWorldArchitectUser(
+  path: Exclude<StoryPath, "shared">,
+  profile: PlayerProfile,
+  facts: readonly CanonFact[],
+): string {
+  return [
+    `## Path register\n${path === "her" ? HER_REGISTER : HIS_REGISTER}`,
+    `## Player profile\n${profileBlock(profile)}`,
+    `## Established facts (immutable rails)\n${factsBlock(facts)}`,
+    `Design the complete story arc for this player's side of the story.`,
+  ].join("\n\n");
+}

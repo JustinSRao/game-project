@@ -32,11 +32,18 @@ export { Director, type DirectorOptions, type TurnResult } from "./director.js";
 export { writeScene, WriterOutput, WriterFailedError } from "./writer.js";
 export {
   checkAreaContinuity,
+  createWorldArc,
+  extractAreaFacts,
   writeArea,
   WorldWriterFailedError,
   WorldWriterOutput,
   type WriteAreaResult,
 } from "./worldWriter.js";
+export {
+  WorldDirector,
+  type WorldDirectorOptions,
+  type WorldTurnResult,
+} from "./worldDirector.js";
 export {
   WORLD_WRITER_SYSTEM,
   buildAreaCheckerUser,

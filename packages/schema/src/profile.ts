@@ -34,8 +34,10 @@ export type PlayerProfile = z.infer<typeof PlayerProfile>;
 
 /** One observed player behavior — the Profiler's raw material. */
 export const PlaySignal = z.object({
+  /** The scene (DSL v0) or area (DSL v1) the behavior happened in. */
   sceneId: Slug,
-  kind: z.enum(["choice", "freeText"]),
+  /** "interact" and "portal" are area-era kinds (DSL v1) — additive. */
+  kind: z.enum(["choice", "freeText", "interact", "portal"]),
   /** The choice label as shown, or the player's typed text verbatim. */
   action: z.string().min(1).max(600),
 });
