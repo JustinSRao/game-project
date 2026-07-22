@@ -1,0 +1,21 @@
+{
+  "name": "@unwritten/art",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "eval": "tsx scripts/eval.ts"
+  },
+  "dependencies": {
+    "@unwritten/schema": "*",
+    "pngjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/pngjs": "^6.0.5",
+    "tsx": "^4.19.0"
+  }
+}
