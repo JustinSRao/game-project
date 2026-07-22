@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ArtRequest } from "@unwritten/schema";
+import type { ArtRequest } from "@howeverfar/schema";
 import { ProceduralPlaceholderProvider } from "../src/placeholder.js";
 import { processArt } from "../src/pipeline.js";
 import { dustyRuinsStyle, neonTideStyle, sampleRequest } from "./fixtures.js";

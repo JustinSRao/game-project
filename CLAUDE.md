@@ -1,6 +1,6 @@
 # CLAUDE.md — instructions for AI coding agents
 
-This repo is **Unwritten**: a top-down 2D pixel-art RPG whose world is generated in real
+This repo is **However Far**: a top-down 2D pixel-art RPG whose world is generated in real
 time by an AI Director — within a fixed, hand-authored story skeleton — as the player
 plays. You are working on the *development* of that system. Read this file fully; it
 encodes the project's invariants.

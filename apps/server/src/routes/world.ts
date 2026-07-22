@@ -1,8 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { AreaAction } from "@unwritten/schema";
-import { NO_KEY_MESSAGE } from "@unwritten/director";
-import { listWorldSessions } from "@unwritten/library";
+import { AreaAction } from "@howeverfar/schema";
+import { NO_KEY_MESSAGE } from "@howeverfar/director";
+import { listWorldSessions } from "@howeverfar/library";
 import { ModelUnavailableError, NotFoundError } from "../sessionManager.js";
 import type { WorldSessionManager } from "../worldSessionManager.js";
 

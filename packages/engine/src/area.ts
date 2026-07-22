@@ -8,7 +8,7 @@ import type {
   Effect,
   GridPos,
   PlacedEntity,
-} from "@unwritten/schema";
+} from "@howeverfar/schema";
 import { EngineError } from "./index.js";
 
 /**

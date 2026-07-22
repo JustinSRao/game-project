@@ -1,5 +1,5 @@
 {
-  "name": "@unwritten/director",
+  "name": "@howeverfar/director",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,9 +14,9 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.3",
-    "@unwritten/content": "*",
-    "@unwritten/engine": "*",
-    "@unwritten/schema": "*",
+    "@howeverfar/content": "*",
+    "@howeverfar/engine": "*",
+    "@howeverfar/schema": "*",
     "dotenv": "^17.4.2",
     "openai": "^6.48.0",
     "zod": "^3.24.0",

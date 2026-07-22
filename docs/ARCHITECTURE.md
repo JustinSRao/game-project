@@ -159,7 +159,7 @@ render instantly, real assets swap in; no gameplay path blocks on an image.
 
 ## 5. Persistence & the asset database
 
-File-based under `UNWRITTEN_HOME` (ADR-0007): sessions, canon, profiles as validated
+File-based under `HOWEVERFAR_HOME` (ADR-0007): sessions, canon, profiles as validated
 JSON; the asset DB as content-addressed files + a catalog index. The public universe
 library is cut (ADR-0012); the Reunion (Phase 7) instead requires both paths' canon to
 export/merge cleanly — that requirement shapes canon storage now. A real database appears
@@ -177,7 +177,7 @@ only if/when multiplayer demands it, contained inside `packages/library`.
 | AI | `ModelClient` seam — OpenAI default (ADR-0008) | Provider is configuration, not architecture |
 | Art tooling | `apps/asset-studio` + `packages/art` | ADR-0011: one gate for three sources |
 | Packaging (later) | Capacitor (iOS/Android), Tauri (Win/macOS) | Free toolchains; zero-spend rule |
-| Persistence | Files under `UNWRITTEN_HOME` (ADR-0007) | Zero infrastructure until multiplayer forces the question |
+| Persistence | Files under `HOWEVERFAR_HOME` (ADR-0007) | Zero infrastructure until multiplayer forces the question |
 | Monorepo | npm workspaces | No extra tooling until needed |
 
 ## 7. Security & cost guardrails

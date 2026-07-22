@@ -34,16 +34,16 @@ export function loadEnv(startDir = process.cwd()): void {
 }
 
 /**
- * Which provider to use. `UNWRITTEN_PROVIDER` decides when set; otherwise
+ * Which provider to use. `HOWEVERFAR_PROVIDER` decides when set; otherwise
  * whichever key is present wins, preferring OpenAI when both are.
  *
- * `UNWRITTEN_PROVIDER=none` forces browse-only mode even when a key is
+ * `HOWEVERFAR_PROVIDER=none` forces browse-only mode even when a key is
  * configured — which is also how tests stay hermetic on a machine that has a
  * real `.env` (loadEnv would otherwise put the key back).
  */
 export function resolveProvider(): Provider | undefined {
   loadEnv();
-  const explicit = process.env["UNWRITTEN_PROVIDER"]?.toLowerCase();
+  const explicit = process.env["HOWEVERFAR_PROVIDER"]?.toLowerCase();
   if (explicit === "none") return undefined;
   if (explicit === "openai" || explicit === "anthropic") return explicit;
   if (process.env["OPENAI_API_KEY"]) return "openai";

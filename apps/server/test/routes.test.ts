@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { SceneSpec } from "@unwritten/schema";
+import { SceneSpec } from "@howeverfar/schema";
 import { buildServer } from "../src/app.js";
 import {
   FakeModelClient,
@@ -12,17 +12,17 @@ import {
   makeWriterOutput,
 } from "./helpers.js";
 
-// Isolate persisted sessions/bundles from the real ~/.unwritten store, and
+// Isolate persisted sessions/bundles from the real ~/.however-far store, and
 // from other test files, for the lifetime of this suite.
 let home: string;
 
 beforeAll(() => {
-  home = mkdtempSync(join(tmpdir(), "unwritten-server-test-"));
-  process.env["UNWRITTEN_HOME"] = home;
+  home = mkdtempSync(join(tmpdir(), "howeverfar-server-test-"));
+  process.env["HOWEVERFAR_HOME"] = home;
 });
 
 afterAll(() => {
-  delete process.env["UNWRITTEN_HOME"];
+  delete process.env["HOWEVERFAR_HOME"];
   rmSync(home, { recursive: true, force: true });
 });
 
@@ -122,14 +122,14 @@ describe("GET /api/sessions/:id/art", () => {
 });
 
 describe("POST /api/sessions — no API key configured", () => {
-  const KEYS = ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "UNWRITTEN_PROVIDER"] as const;
+  const KEYS = ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "HOWEVERFAR_PROVIDER"] as const;
   const saved = new Map(KEYS.map((k) => [k, process.env[k]]));
 
   beforeEach(() => {
     // Deleting the keys is not enough: a developer with a real .env would have
     // it loaded back in by createModelClient. "none" forces browse-only mode.
     for (const k of KEYS) delete process.env[k];
-    process.env["UNWRITTEN_PROVIDER"] = "none";
+    process.env["HOWEVERFAR_PROVIDER"] = "none";
   });
   afterAll(() => {
     for (const [k, v] of saved) if (v !== undefined) process.env[k] = v;

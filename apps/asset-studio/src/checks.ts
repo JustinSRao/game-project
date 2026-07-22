@@ -1,5 +1,5 @@
-import type { StyleBible } from "@unwritten/schema";
-import { getPixel, rgbaToHex, type RawImage } from "@unwritten/art";
+import type { StyleBible } from "@howeverfar/schema";
+import { getPixel, rgbaToHex, type RawImage } from "@howeverfar/art";
 
 /**
  * What the asset is for. Determines which checks apply:

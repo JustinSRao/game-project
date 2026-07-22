@@ -1,11 +1,11 @@
-import { Director, NO_KEY_MESSAGE, type ModelClient } from "@unwritten/director";
+import { Director, NO_KEY_MESSAGE, type ModelClient } from "@howeverfar/director";
 import {
   loadSession,
   newReplaySession,
   readBundle,
   saveSession,
-} from "@unwritten/library";
-import type { SessionSave } from "@unwritten/schema";
+} from "@howeverfar/library";
+import type { SessionSave } from "@howeverfar/schema";
 
 /** Thrown when a session or bundle referenced by id/path cannot be found. */
 export class NotFoundError extends Error {
@@ -31,7 +31,7 @@ export interface SessionManagerOptions {
 
 /**
  * Owns one live Director per active session, hydrated from disk (via
- * @unwritten/library) on demand. Read-only lookups (snapshot) never require a
+ * @howeverfar/library) on demand. Read-only lookups (snapshot) never require a
  * model client; taking a further turn does.
  */
 export class SessionManager {

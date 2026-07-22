@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactElement } from "react";
-import type { ArtRequest } from "@unwritten/schema";
+import type { ArtRequest } from "@howeverfar/schema";
 import { artUrl } from "../api.js";
 
 export interface ArtSlotProps {

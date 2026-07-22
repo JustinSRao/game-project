@@ -1,11 +1,11 @@
-import type { PlayerAction } from "@unwritten/schema";
+import type { PlayerAction } from "@howeverfar/schema";
 import {
   createModelClient,
   Director,
   NO_KEY_MESSAGE,
   resolveProvider,
   type ModelClient,
-} from "@unwritten/director";
+} from "@howeverfar/director";
 
 /**
  * The go/no-go demo (ROADMAP Phase 1): run contrasting scripted play styles

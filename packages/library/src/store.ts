@@ -1,15 +1,15 @@
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { AreaSessionSave, SessionSave, UniverseBundle } from "@unwritten/schema";
+import { AreaSessionSave, SessionSave, UniverseBundle } from "@howeverfar/schema";
 
 /**
  * File-based persistence (see ADR-0007): one JSON file per session/bundle
- * under UNWRITTEN_HOME (default ~/.unwritten). Deliberately boring — swap for
+ * under HOWEVERFAR_HOME (default ~/.however-far). Deliberately boring — swap for
  * a database when the library goes multi-user.
  */
 export function storeRoot(): string {
-  return process.env["UNWRITTEN_HOME"] ?? join(homedir(), ".unwritten");
+  return process.env["HOWEVERFAR_HOME"] ?? join(homedir(), ".however-far");
 }
 
 function dir(kind: "sessions" | "bundles" | "world-sessions"): string {

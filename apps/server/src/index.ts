@@ -1,4 +1,4 @@
-import { NO_KEY_MESSAGE, resolveProvider } from "@unwritten/director";
+import { NO_KEY_MESSAGE, resolveProvider } from "@howeverfar/director";
 import { buildServer } from "./app.js";
 
 const PORT = Number(process.env["PORT"] ?? 3001);

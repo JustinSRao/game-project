@@ -32,8 +32,8 @@ async function main(): Promise<void> {
     console.log(`  ${tier.padEnd(7)} ${id}  — ${ok}`);
   }
   console.log(
-    "\nOverride without editing code by setting UNWRITTEN_OPENAI_MODEL_STRONG " +
-      "and UNWRITTEN_OPENAI_MODEL_CHEAP in .env",
+    "\nOverride without editing code by setting HOWEVERFAR_OPENAI_MODEL_STRONG " +
+      "and HOWEVERFAR_OPENAI_MODEL_CHEAP in .env",
   );
 }
 

@@ -8,12 +8,12 @@ import { FakeModelClient, makeArc, makeProfile } from "./helpers.js";
 let home: string;
 
 beforeAll(() => {
-  home = mkdtempSync(join(tmpdir(), "unwritten-world-test-"));
-  process.env["UNWRITTEN_HOME"] = home;
+  home = mkdtempSync(join(tmpdir(), "howeverfar-world-test-"));
+  process.env["HOWEVERFAR_HOME"] = home;
 });
 
 afterAll(() => {
-  delete process.env["UNWRITTEN_HOME"];
+  delete process.env["HOWEVERFAR_HOME"];
   rmSync(home, { recursive: true, force: true });
 });
 
@@ -129,7 +129,7 @@ describe("world session routes", () => {
     // Teleport the saved session to the crossing door by editing the snapshot
     // through the manager's own persistence (hydrate-edit-save), the way a
     // played-through session would arrive there.
-    const { loadWorldSession, saveWorldSession } = await import("@unwritten/library");
+    const { loadWorldSession, saveWorldSession } = await import("@howeverfar/library");
     const save = loadWorldSession(sessionId);
     save.state.currentAreaId = "prologue-crossing";
     save.state.pos = { x: 1, y: 3 };

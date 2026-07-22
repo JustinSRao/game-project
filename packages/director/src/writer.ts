@@ -1,5 +1,5 @@
-import { SceneSpec, Slug } from "@unwritten/schema";
-import { validateSceneIntegrity } from "@unwritten/engine";
+import { SceneSpec, Slug } from "@howeverfar/schema";
+import { validateSceneIntegrity } from "@howeverfar/engine";
 import { z } from "zod";
 import { DIRECTOR_CONFIG } from "./config.js";
 import type { ModelClient } from "./modelClient.js";

@@ -5,7 +5,7 @@
  * packages/art/eval-output/ (gitignored; test-only, not part of the
  * package's public surface or CI).
  *
- * Run with: npm run eval -w @unwritten/art
+ * Run with: npm run eval -w @howeverfar/art
  *
  * Cohesion is judged by eyes (pixel-art skill: "keep a visual eval page ...
  * make the eyes' job easy") — this script is that eval page, rendered to
@@ -14,7 +14,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { ArtRequest, StyleBible } from "@unwritten/schema";
+import type { ArtRequest, StyleBible } from "@howeverfar/schema";
 import { createImage, encodePng, hexToRgba, setPixel, type RawImage } from "../src/image.js";
 import { processArt } from "../src/pipeline.js";
 import { ProceduralPlaceholderProvider } from "../src/placeholder.js";

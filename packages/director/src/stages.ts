@@ -7,7 +7,7 @@ import {
   SceneSpec,
   StoryArc,
   StyleBible,
-} from "@unwritten/schema";
+} from "@howeverfar/schema";
 import type { z } from "zod";
 import { DIRECTOR_CONFIG } from "./config.js";
 import type { ModelClient } from "./modelClient.js";

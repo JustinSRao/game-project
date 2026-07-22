@@ -1,4 +1,4 @@
-import { validateAreaIntegrity } from "@unwritten/engine";
+import { validateAreaIntegrity } from "@howeverfar/engine";
 import { createModelClient, loadEnv } from "../src/createModelClient.js";
 import { WorldDirector } from "../src/worldDirector.js";
 
@@ -9,8 +9,8 @@ import { WorldDirector } from "../src/worldDirector.js";
  * (profile + seeded canon + arc) and the World Writer delivers a valid,
  * integrity-clean first generated area.
  *
- *   npm run eval:world -w @unwritten/director            # her path (default)
- *   npm run eval:world -w @unwritten/director -- his     # his path
+ *   npm run eval:world -w @howeverfar/director            # her path (default)
+ *   npm run eval:world -w @howeverfar/director -- his     # his path
  */
 
 const path = process.argv[2] === "his" ? ("his" as const) : ("her" as const);

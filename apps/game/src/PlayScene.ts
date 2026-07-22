@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import type { AreaSpec, PlacedEntity } from "@unwritten/schema";
+import type { AreaSpec, PlacedEntity } from "@howeverfar/schema";
 import {
   applyConvoChoice,
   interactionUsed,
@@ -67,7 +67,7 @@ export class PlayScene extends Phaser.Scene {
       kb.on(`keydown-${["ONE", "TWO", "THREE", "FOUR"][n - 1]}`, () => this.pickChoice(n));
     }
 
-    ui.showVeil("Unwritten", "Opening the evening…", "");
+    ui.showVeil("However Far", "Opening the evening…", "");
   }
 
   override update(): void {

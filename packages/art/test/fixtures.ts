@@ -1,4 +1,4 @@
-import type { ArtRequest, StyleBible } from "@unwritten/schema";
+import type { ArtRequest, StyleBible } from "@howeverfar/schema";
 
 export const dustyRuinsStyle: StyleBible = {
   paletteName: "dusty-ruins",

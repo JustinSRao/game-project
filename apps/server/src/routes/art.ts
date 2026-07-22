@@ -1,12 +1,12 @@
 import { join } from "node:path";
 import type { FastifyInstance } from "fastify";
-import { ArtRequest } from "@unwritten/schema";
+import { ArtRequest } from "@howeverfar/schema";
 import {
   ProceduralPlaceholderProvider,
   createAssetCache,
   encodePng,
-} from "@unwritten/art";
-import { storeRoot } from "@unwritten/library";
+} from "@howeverfar/art";
+import { storeRoot } from "@howeverfar/library";
 import { NotFoundError, type SessionManager } from "../sessionManager.js";
 
 /**
@@ -15,7 +15,7 @@ import { NotFoundError, type SessionManager } from "../sessionManager.js";
  * different images. The client passes the scene's ArtRequest as query params
  * and gets back a PNG.
  *
- * Assets are content-hash cached on disk (@unwritten/art), so a repeat request
+ * Assets are content-hash cached on disk (@howeverfar/art), so a repeat request
  * is a file read and never re-runs the provider. The response is marked
  * immutable: the cache key already covers request + style + pipeline version,
  * so a given URL's bytes can never change within a universe.

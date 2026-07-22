@@ -42,7 +42,7 @@ export class OpenAIModelClient implements ModelClient {
       reasoning_effort: reasoningEffort(req.role),
       response_format: {
         type: "json_schema",
-        json_schema: { name: "unwritten_output", strict: true, schema },
+        json_schema: { name: "howeverfar_output", strict: true, schema },
       },
       messages,
     });

@@ -1,5 +1,5 @@
 {
-  "name": "@unwritten/content",
+  "name": "@howeverfar/content",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@unwritten/schema": "*",
-    "@unwritten/engine": "*"
+    "@howeverfar/schema": "*",
+    "@howeverfar/engine": "*"
   }
 }

@@ -5,7 +5,7 @@ import type {
   PlayerProfile,
   StoryArc,
   StoryPath,
-} from "@unwritten/schema";
+} from "@howeverfar/schema";
 import { AUTHOR_PRINCIPLES } from "./prompts.js";
 
 /**

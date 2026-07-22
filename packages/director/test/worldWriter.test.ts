@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { AreaGameState, CanonFact } from "@unwritten/schema";
+import type { AreaGameState, CanonFact } from "@howeverfar/schema";
 import { toOpenAISchema } from "../src/openaiSchema.js";
 import { WorldWriterOutput, writeArea, WorldWriterFailedError } from "../src/worldWriter.js";
 import { WORLD_WRITER_SYSTEM, type WorldWriterContext } from "../src/worldPrompts.js";

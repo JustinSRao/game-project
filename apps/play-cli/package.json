@@ -1,5 +1,5 @@
 {
-  "name": "@unwritten/play-cli",
+  "name": "@howeverfar/play-cli",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,10 +9,10 @@
     "eval": "tsx src/eval.ts"
   },
   "dependencies": {
-    "@unwritten/content": "*",
-    "@unwritten/director": "*",
-    "@unwritten/library": "*",
-    "@unwritten/schema": "*"
+    "@howeverfar/content": "*",
+    "@howeverfar/director": "*",
+    "@howeverfar/library": "*",
+    "@howeverfar/schema": "*"
   },
   "devDependencies": {
     "tsx": "^4.19.0"

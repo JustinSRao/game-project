@@ -1,5 +1,5 @@
 {
-  "name": "@unwritten/library",
+  "name": "@howeverfar/library",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,10 +10,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@unwritten/content": "*",
-    "@unwritten/director": "*",
-    "@unwritten/engine": "*",
-    "@unwritten/schema": "*",
+    "@howeverfar/content": "*",
+    "@howeverfar/director": "*",
+    "@howeverfar/engine": "*",
+    "@howeverfar/schema": "*",
     "zod": "^3.24.0"
   }
 }

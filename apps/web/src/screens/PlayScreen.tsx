@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import type { SceneSpec } from "@unwritten/schema";
+import type { SceneSpec } from "@howeverfar/schema";
 import { SceneView } from "../components/SceneView.js";
 
 export interface PlayScreenProps {

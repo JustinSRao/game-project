@@ -78,13 +78,13 @@ export const DIRECTOR_CONFIG = {
 /**
  * OpenAI model ids per tier. Overridable without a code change, because which
  * models an account can actually reach varies — run `npm run models -w
- * @unwritten/director` to list what a key has access to.
+ * @howeverfar/director` to list what a key has access to.
  */
 export const OPENAI_MODELS: Record<Tier, string> = {
   // Latest general-purpose model rather than a `-pro` variant: the Scene
   // Writer runs on every turn, so latency is a product concern, not just cost.
-  strong: process.env["UNWRITTEN_OPENAI_MODEL_STRONG"] ?? "gpt-5.5",
+  strong: process.env["HOWEVERFAR_OPENAI_MODEL_STRONG"] ?? "gpt-5.5",
   // Not `-nano`: the Checker's false alarms are expensive (each one triggers a
   // strong-tier regeneration), so accuracy here pays for itself.
-  cheap: process.env["UNWRITTEN_OPENAI_MODEL_CHEAP"] ?? "gpt-5.4-mini",
+  cheap: process.env["HOWEVERFAR_OPENAI_MODEL_CHEAP"] ?? "gpt-5.4-mini",
 };

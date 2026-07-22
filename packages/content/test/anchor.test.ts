@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateSceneIntegrity, initialState, applyAction } from "@unwritten/engine";
+import { validateSceneIntegrity, initialState, applyAction } from "@howeverfar/engine";
 import { ANCHOR_ENTRY_ID, getAnchorScenes, isAnchorScene } from "../src/index.js";
 
 describe("the Anchor", () => {

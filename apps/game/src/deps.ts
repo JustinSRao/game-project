@@ -13,9 +13,9 @@ export {
   tryMove,
   type Direction,
   type InteractionOutcome,
-} from "@unwritten/engine";
+} from "@howeverfar/engine";
 export {
   getPrologueArea,
   getPrologueAreas,
   PROLOGUE_ENTRY_ID,
-} from "@unwritten/content";
+} from "@howeverfar/content";

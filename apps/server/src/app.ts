@@ -1,5 +1,5 @@
 import Fastify, { type FastifyInstance } from "fastify";
-import { createModelClient, type ModelClient } from "@unwritten/director";
+import { createModelClient, type ModelClient } from "@howeverfar/director";
 import { SessionManager } from "./sessionManager.js";
 import { WorldSessionManager } from "./worldSessionManager.js";
 import { registerSessionRoutes } from "./routes/sessions.js";
@@ -17,7 +17,7 @@ export interface BuildServerOptions {
   logger?: boolean;
 }
 
-/** Thin HTTP API over @unwritten/director and @unwritten/library (a Fastify app factory, so tests can use fastify.inject without binding a port). */
+/** Thin HTTP API over @howeverfar/director and @howeverfar/library (a Fastify app factory, so tests can use fastify.inject without binding a port). */
 export function buildServer(opts: BuildServerOptions = {}): FastifyInstance {
   const app = Fastify({ logger: opts.logger ?? false });
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { StyleBible } from "@unwritten/schema";
-import { createImage, hexToRgba, setPixel, type RawImage } from "@unwritten/art";
+import type { StyleBible } from "@howeverfar/schema";
+import { createImage, hexToRgba, setPixel, type RawImage } from "@howeverfar/art";
 import { validateAsset, validateFrameSet } from "./checks.js";
 
 const style: StyleBible = {

@@ -1,4 +1,4 @@
-import type { StoryPath } from "@unwritten/schema";
+import type { StoryPath } from "@howeverfar/schema";
 
 /**
  * STORY.md's fixed seed facts, loaded as immutable, highest-priority canon

@@ -1,5 +1,5 @@
 {
-  "name": "@unwritten/asset-studio",
+  "name": "@howeverfar/asset-studio",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,8 +9,8 @@
     "start": "tsx src/main.ts"
   },
   "dependencies": {
-    "@unwritten/art": "*",
-    "@unwritten/schema": "*",
+    "@howeverfar/art": "*",
+    "@howeverfar/schema": "*",
     "zod": "^3.23.0"
   },
   "devDependencies": {

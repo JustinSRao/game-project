@@ -10,7 +10,7 @@ import type { ImageProvider } from "../src/provider.js";
 import { dustyRuinsStyle, sampleRequest } from "./fixtures.js";
 
 async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
-  const dir = await mkdtemp(join(tmpdir(), "unwritten-art-cache-"));
+  const dir = await mkdtemp(join(tmpdir(), "howeverfar-art-cache-"));
   try {
     return await fn(dir);
   } finally {

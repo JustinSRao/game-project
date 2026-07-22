@@ -50,7 +50,7 @@ export function StartScreen({ busy, error, onStart }: StartScreenProps): ReactEl
   return (
     <div className="start">
       <div className="start__masthead">
-        <h1 className="start__title">Unwritten</h1>
+        <h1 className="start__title">However Far</h1>
         <p className="start__tagline">A game authored in real time, as you play it.</p>
       </div>
 

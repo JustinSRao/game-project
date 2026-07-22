@@ -1,7 +1,7 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { basename, join } from "node:path";
-import { StyleBible } from "@unwritten/schema";
-import { decodePng, encodePng, processArt } from "@unwritten/art";
+import { StyleBible } from "@howeverfar/schema";
+import { decodePng, encodePng, processArt } from "@howeverfar/art";
 import { ASSET_KINDS, validateAsset, type AssetKind, type Finding } from "./checks.js";
 
 /**

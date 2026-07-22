@@ -1,4 +1,4 @@
-import type { ConvoChoice, DialogueLine } from "@unwritten/schema";
+import type { ConvoChoice, DialogueLine } from "@howeverfar/schema";
 
 /**
  * DOM overlay for narration, dialogue, choices, HUD, and the "unwritten"

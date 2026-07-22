@@ -1,4 +1,4 @@
-import { CheckerVerdict, PlayerProfile } from "@unwritten/schema";
+import { CheckerVerdict, PlayerProfile } from "@howeverfar/schema";
 import { DIRECTOR_CONFIG, OPENAI_MODELS } from "../src/config.js";
 import { createModelClient, resolveProvider } from "../src/createModelClient.js";
 

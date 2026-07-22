@@ -68,7 +68,7 @@ Goal: walk a character through a generated map in the Phaser client, on either p
       disk persistence), and the game client opens a server session on boot with
       graceful local fallback
 - [x] Playable demo — **the Phase 4 go/no-go: PASSED 2026-07-22** against the live API
-      (`npm run eval:world -w @unwritten/director`). A scripted affectionate prologue
+      (`npm run eval:world -w @howeverfar/director`). A scripted affectionate prologue
       (took her hand, promised to find her, held on in the underpass) profiled as
       "romantic portal fantasy — earnest, intimate"; the Architect planned her path
       inside the rails (vowthread magic — binding bonds into force; the threshold

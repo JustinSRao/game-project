@@ -1,5 +1,5 @@
 {
-  "name": "@unwritten/game",
+  "name": "@howeverfar/game",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,9 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@unwritten/content": "*",
-    "@unwritten/engine": "*",
-    "@unwritten/schema": "*",
+    "@howeverfar/content": "*",
+    "@howeverfar/engine": "*",
+    "@howeverfar/schema": "*",
     "phaser": "^3.87.0"
   },
   "devDependencies": {

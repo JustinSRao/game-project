@@ -11,7 +11,7 @@ import {
   makeWriterOutput,
 } from "./helpers.js";
 import type { WriterContext } from "../src/prompts.js";
-import { SceneSpec } from "@unwritten/schema";
+import { SceneSpec } from "@howeverfar/schema";
 
 describe("CanonLedger", () => {
   it("appends with assigned ids and resolves supersession", () => {

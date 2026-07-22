@@ -1,5 +1,5 @@
 {
-  "name": "@unwritten/art",
+  "name": "@howeverfar/art",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,7 +11,7 @@
     "eval": "tsx scripts/eval.ts"
   },
   "dependencies": {
-    "@unwritten/schema": "*",
+    "@howeverfar/schema": "*",
     "pngjs": "^7.0.0"
   },
   "devDependencies": {

@@ -4,7 +4,7 @@ import type {
   PlayerAction,
   SceneSpec,
   Transition,
-} from "@unwritten/schema";
+} from "@howeverfar/schema";
 
 /**
  * The engine is deterministic and dumb on purpose (ADR-0001, ADR-0002):

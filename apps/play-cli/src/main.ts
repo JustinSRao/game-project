@@ -1,12 +1,12 @@
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
-import type { SceneSpec, SessionSave } from "@unwritten/schema";
+import type { SceneSpec, SessionSave } from "@howeverfar/schema";
 import {
   createModelClient,
   Director,
   NO_KEY_MESSAGE,
   type TurnResult,
-} from "@unwritten/director";
+} from "@howeverfar/director";
 import {
   exportBundle,
   listBundles,
@@ -16,7 +16,7 @@ import {
   readBundle,
   saveSession,
   writeBundle,
-} from "@unwritten/library";
+} from "@howeverfar/library";
 
 /**
  * The text loop — the whole vision minus graphics. Usage:

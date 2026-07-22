@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateAreaIntegrity } from "@unwritten/engine";
+import { validateAreaIntegrity } from "@howeverfar/engine";
 import {
   PATH_CHOICE_PORTALS,
   PROLOGUE_CANON,

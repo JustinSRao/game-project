@@ -1,5 +1,5 @@
 {
-  "name": "@unwritten/server",
+  "name": "@howeverfar/server",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,10 +10,10 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
-    "@unwritten/art": "*",
-    "@unwritten/director": "*",
-    "@unwritten/library": "*",
-    "@unwritten/schema": "*",
+    "@howeverfar/art": "*",
+    "@howeverfar/director": "*",
+    "@howeverfar/library": "*",
+    "@howeverfar/schema": "*",
     "fastify": "^5.10.0",
     "zod": "^3.24.0"
   },

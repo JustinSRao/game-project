@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { SceneSpec } from "@unwritten/schema";
+import { SceneSpec } from "@howeverfar/schema";
 import {
   applyAction,
   applyEffect,

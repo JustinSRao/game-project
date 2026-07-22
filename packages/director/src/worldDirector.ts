@@ -5,15 +5,15 @@ import type {
   AreaSpec,
   AreaTransition,
   StoryPath,
-} from "@unwritten/schema";
-import { applyAreaAction, enterArea, initialAreaState } from "@unwritten/engine";
+} from "@howeverfar/schema";
+import { applyAreaAction, enterArea, initialAreaState } from "@howeverfar/engine";
 import {
   PATH_CHOICE_PORTALS,
   PATH_SEED_CANON,
   PROLOGUE_CANON,
   PROLOGUE_ENTRY_ID,
   getPrologueAreas,
-} from "@unwritten/content";
+} from "@howeverfar/content";
 import { CanonLedger } from "./canonLedger.js";
 import { DIRECTOR_CONFIG } from "./config.js";
 import type { ModelClient } from "./modelClient.js";

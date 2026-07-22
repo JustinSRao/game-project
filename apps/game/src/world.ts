@@ -3,7 +3,7 @@ import type {
   AreaGameState,
   AreaSpec,
   AreaTransition,
-} from "@unwritten/schema";
+} from "@howeverfar/schema";
 import {
   enterArea,
   initialAreaState,

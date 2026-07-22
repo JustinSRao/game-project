@@ -1,4 +1,4 @@
-# Playtesting Unwritten
+# Playtesting However Far (text-era prototype, pre-title "Unwritten")
 
 How to run the game yourself, what should happen at each step, and how to tell whether
 it's actually working. No prior knowledge of the codebase needed.
@@ -30,7 +30,7 @@ key stays on your machine, is only ever read server-side, and the browser never 
 Check it works before playing:
 
 ```sh
-npm run smoke -w @unwritten/director
+npm run smoke -w @howeverfar/director
 ```
 
 Two quick API calls, a fraction of a cent. You should see `Both tiers OK`. If it fails
@@ -46,10 +46,10 @@ Two terminals, both from the repo root:
 
 ```sh
 # terminal 1
-npm start -w @unwritten/server     # → "Server listening at http://0.0.0.0:3001"
+npm start -w @howeverfar/server     # → "Server listening at http://0.0.0.0:3001"
 
 # terminal 2
-npm run dev -w @unwritten/web      # → "Local: http://localhost:5173/"
+npm run dev -w @howeverfar/web      # → "Local: http://localhost:5173/"
 ```
 
 Open **http://localhost:5173**. Leave both running while you play; the server holds your
@@ -60,7 +60,7 @@ key and does all the authoring.
 One terminal, from the repo root:
 
 ```sh
-npm start -w @unwritten/play-cli
+npm start -w @howeverfar/play-cli
 ```
 
 Pick choices by typing their **number**. Type **anything else** to act freely in your own
@@ -157,7 +157,7 @@ and compare. This is the thing the whole project rests on.
 Your progress saves **after every turn**, automatically. Nothing is lost if you close the
 window or hit `/quit`.
 
-Everything lives in `~/.unwritten/` (`C:\Users\<you>\.unwritten\` on Windows):
+Everything lives in `~/.however-far/` (`C:\Users\<you>\.however-far\` on Windows):
 
 ```
 sessions/   one JSON file per playthrough
@@ -168,8 +168,8 @@ assets/     cached art
 To resume:
 
 ```sh
-npm start -w @unwritten/play-cli -- --sessions        # list them
-npm start -w @unwritten/play-cli -- --resume <id>
+npm start -w @howeverfar/play-cli -- --sessions        # list them
+npm start -w @howeverfar/play-cli -- --resume <id>
 ```
 
 In the browser, saved sessions appear on the start screen under **Resume**.
@@ -198,7 +198,7 @@ dollars. `/quit` any time; nothing is charged for a session you don't continue.
 Models are set in `packages/director/src/config.ts` and overridable from `.env`:
 
 ```sh
-npm run models -w @unwritten/director    # what your key can actually reach
+npm run models -w @howeverfar/director    # what your key can actually reach
 ```
 
 ---
@@ -247,5 +247,5 @@ Most useful to capture:
 3. **Where it broke or felt wrong** — contradictions, forgotten details, generic prose,
    scenes that ignored what you did, or pacing that dragged.
 
-The session file in `~/.unwritten/sessions/` contains the whole playthrough — profile,
+The session file in `~/.however-far/sessions/` contains the whole playthrough — profile,
 arc, canon, and every scene — so pointing at one is often faster than describing it.

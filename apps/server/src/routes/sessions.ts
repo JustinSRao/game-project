@@ -1,8 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { PlayerAction } from "@unwritten/schema";
-import { NO_KEY_MESSAGE } from "@unwritten/director";
-import { BundleError, exportBundle, listSessions, writeBundle } from "@unwritten/library";
+import { PlayerAction } from "@howeverfar/schema";
+import { NO_KEY_MESSAGE } from "@howeverfar/director";
+import { BundleError, exportBundle, listSessions, writeBundle } from "@howeverfar/library";
 import {
   ModelUnavailableError,
   NotFoundError,

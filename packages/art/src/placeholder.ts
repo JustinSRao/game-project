@@ -1,4 +1,4 @@
-import type { ArtRequest, StyleBible } from "@unwritten/schema";
+import type { ArtRequest, StyleBible } from "@howeverfar/schema";
 import { createImage, getPixel, hexToRgba, setPixel, type RawImage, type RGBA } from "./image.js";
 import { hashOf, seedFromHex } from "./hash.js";
 import { mulberry32, type Rng } from "./random.js";

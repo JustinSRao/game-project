@@ -3,13 +3,13 @@ import {
   type SceneSpec,
   type SessionSave,
   type Transition,
-} from "@unwritten/schema";
-import { applyAction, enterScene, initialState } from "@unwritten/engine";
+} from "@howeverfar/schema";
+import { applyAction, enterScene, initialState } from "@howeverfar/engine";
 import {
   ANCHOR_CANON,
   ANCHOR_ENTRY_ID,
   getAnchorScenes,
-} from "@unwritten/content";
+} from "@howeverfar/content";
 import { CanonLedger } from "./canonLedger.js";
 import { DIRECTOR_CONFIG } from "./config.js";
 import type { ModelClient } from "./modelClient.js";

@@ -10,11 +10,11 @@ output — Claude Code / Codex drive it conversationally ("create a village tile
 
 ```sh
 # Run the mandatory pipeline (pixelize → palette quantize → outline) on raw art:
-npm start -w @unwritten/asset-studio -- normalize raw/*.png \
+npm start -w @howeverfar/asset-studio -- normalize raw/*.png \
   --style styles/her-world.draft.json --out normalized/
 
 # Check gate conformance (grid, palette, transparency, coverage):
-npm start -w @unwritten/asset-studio -- validate normalized/*.png \
+npm start -w @howeverfar/asset-studio -- validate normalized/*.png \
   --style styles/her-world.draft.json --kind sprite --json
 ```
 

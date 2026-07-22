@@ -7,8 +7,8 @@ import {
   Slug,
   StoryArc,
   StoryPath,
-} from "@unwritten/schema";
-import { validateAreaIntegrity } from "@unwritten/engine";
+} from "@howeverfar/schema";
+import { validateAreaIntegrity } from "@howeverfar/engine";
 import { z } from "zod";
 import { DIRECTOR_CONFIG } from "./config.js";
 import type { ModelClient } from "./modelClient.js";

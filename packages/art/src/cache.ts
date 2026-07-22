@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { ArtRequest, StyleBible } from "@unwritten/schema";
+import type { ArtRequest, StyleBible } from "@howeverfar/schema";
 import { decodePng, encodePng, type RawImage } from "./image.js";
 import { hashOf } from "./hash.js";
 import { PIPELINE_VERSION, processArt } from "./pipeline.js";

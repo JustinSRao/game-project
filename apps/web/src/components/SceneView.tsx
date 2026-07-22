@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent, type ReactElement } from "react";
-import type { ArtRequest, Entity, SceneSpec } from "@unwritten/schema";
+import type { ArtRequest, Entity, SceneSpec } from "@howeverfar/schema";
 import { ArtSlot } from "./ArtSlot.js";
 import { useTypewriter } from "../useTypewriter.js";
 

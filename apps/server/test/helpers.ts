@@ -1,5 +1,5 @@
-import type { PlayerProfile, StoryArc, StyleBible } from "@unwritten/schema";
-import type { ModelClient, StructuredRequest } from "@unwritten/director";
+import type { PlayerProfile, StoryArc, StyleBible } from "@howeverfar/schema";
+import type { ModelClient, StructuredRequest } from "@howeverfar/director";
 
 /**
  * Deterministic stand-in for the Claude API — copied from

@@ -1,5 +1,5 @@
 import { useState, type ReactElement } from "react";
-import type { SceneSpec } from "@unwritten/schema";
+import type { SceneSpec } from "@howeverfar/schema";
 import { ApiError, createSession, sendAction, type CreateSessionRequest } from "./api.js";
 import { StartScreen } from "./screens/StartScreen.js";
 import { PlayScreen } from "./screens/PlayScreen.js";

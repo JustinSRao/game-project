@@ -1,4 +1,4 @@
-import type { PlayerProfile, StoryArc, StyleBible } from "@unwritten/schema";
+import type { PlayerProfile, StoryArc, StyleBible } from "@howeverfar/schema";
 import type { ModelClient, StructuredRequest } from "../src/modelClient.js";
 
 /**

@@ -2,12 +2,12 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { PlayerProfile, SessionSave, StoryArc, StyleBible } from "@unwritten/schema";
+import type { PlayerProfile, SessionSave, StoryArc, StyleBible } from "@howeverfar/schema";
 import {
   Director,
   type ModelClient,
   type StructuredRequest,
-} from "@unwritten/director";
+} from "@howeverfar/director";
 import {
   exportBundle,
   listBundles,
@@ -23,7 +23,7 @@ import {
 let tmp: string;
 beforeAll(() => {
   tmp = mkdtempSync(join(tmpdir(), "unwritten-test-"));
-  process.env["UNWRITTEN_HOME"] = tmp;
+  process.env["HOWEVERFAR_HOME"] = tmp;
 });
 afterAll(() => {
   rmSync(tmp, { recursive: true, force: true });

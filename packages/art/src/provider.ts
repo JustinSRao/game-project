@@ -1,5 +1,5 @@
-import type { ArtRequest } from "@unwritten/schema";
-import type { StyleBible } from "@unwritten/schema";
+import type { ArtRequest } from "@howeverfar/schema";
+import type { StyleBible } from "@howeverfar/schema";
 import type { RawImage } from "./image.js";
 
 /**

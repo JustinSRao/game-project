@@ -5,8 +5,8 @@ import {
   StoryArc,
   UniverseBundle,
   type SceneSpec,
-} from "@unwritten/schema";
-import { Director } from "@unwritten/director";
+} from "@howeverfar/schema";
+import { Director } from "@howeverfar/director";
 
 export class BundleError extends Error {
   constructor(message: string) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CheckerVerdict, FactExtraction, PlayerProfile } from "@unwritten/schema";
+import { CheckerVerdict, FactExtraction, PlayerProfile } from "@howeverfar/schema";
 import { WriterOutput } from "../src/writer.js";
 import {
   ROOT_WRAPPER_KEY,

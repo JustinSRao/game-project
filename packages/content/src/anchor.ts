@@ -1,4 +1,4 @@
-import { SceneSpec } from "@unwritten/schema";
+import { SceneSpec } from "@howeverfar/schema";
 
 /**
  * THE ANCHOR — the fixed, hand-written opening every player shares.

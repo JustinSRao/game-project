@@ -1,4 +1,4 @@
-import type { ArtRequest, PlayerAction, SceneSpec, SessionSave } from "@unwritten/schema";
+import type { ArtRequest, PlayerAction, SceneSpec, SessionSave } from "@howeverfar/schema";
 
 /**
  * Typed client for apps/server's HTTP API. This is the only place the web

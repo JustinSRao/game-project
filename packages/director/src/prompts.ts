@@ -5,7 +5,7 @@ import type {
   PlaySignal,
   SceneSpec,
   StoryArc,
-} from "@unwritten/schema";
+} from "@howeverfar/schema";
 
 /**
  * Prompt builders. Cache discipline (CLAUDE.md): system prompts are FROZEN —

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { StoryArc } from "@unwritten/schema";
+import { StoryArc } from "@howeverfar/schema";
 import { ValidatingModelClient } from "../src/validatingClient.js";
 import { ModelOutputError, type ModelClient, type StructuredRequest } from "../src/modelClient.js";
 import { makeArc } from "./helpers.js";

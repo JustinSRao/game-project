@@ -1,6 +1,6 @@
-import { WorldDirector, type ModelClient } from "@unwritten/director";
-import { loadWorldSession, saveWorldSession } from "@unwritten/library";
-import type { AreaSessionSave } from "@unwritten/schema";
+import { WorldDirector, type ModelClient } from "@howeverfar/director";
+import { loadWorldSession, saveWorldSession } from "@howeverfar/library";
+import type { AreaSessionSave } from "@howeverfar/schema";
 import { ModelUnavailableError, NotFoundError } from "./sessionManager.js";
 
 export interface WorldSessionManagerOptions {

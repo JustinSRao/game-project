@@ -1,4 +1,4 @@
-import type { StyleBible } from "@unwritten/schema";
+import type { StyleBible } from "@howeverfar/schema";
 import { createImage, getPixel, hexToRgba, setPixel, type RawImage, type RGBA } from "./image.js";
 
 /**

@@ -1,4 +1,4 @@
-# Unwritten
+# However Far
 
 A **top-down 2D pixel-art RPG created in real time, by AI, as you play it** — built on a
 fixed, hand-authored story.
@@ -69,16 +69,16 @@ server-side. The Director works against either OpenAI (default) or Anthropic; se
 In the browser — two terminals:
 
 ```sh
-npm start -w @unwritten/server          # API on :3001 (the key lives here, not in the browser)
-npm run dev -w @unwritten/web           # client on :5173, proxies /api to the server
+npm start -w @howeverfar/server          # API on :3001 (the key lives here, not in the browser)
+npm run dev -w @howeverfar/web           # client on :5173, proxies /api to the server
 ```
 
 Or in one terminal:
 
 ```sh
-npm start -w @unwritten/play-cli                    # new playthrough
-npm start -w @unwritten/play-cli -- --sessions      # list saves · --resume <id> to continue
-npm start -w @unwritten/play-cli -- --library       # published universes · --replay <path>
+npm start -w @howeverfar/play-cli                    # new playthrough
+npm start -w @howeverfar/play-cli -- --sessions      # list saves · --resume <id> to continue
+npm start -w @howeverfar/play-cli -- --library       # published universes · --replay <path>
 ```
 
 Finish a game and you'll be offered to publish it to your local library, where it can be
@@ -93,6 +93,6 @@ npm install
 npm run typecheck                    # all workspaces
 npm test                             # all workspaces — no API key needed, the Director
                                      # is tested through a fake model client
-npm run models -w @unwritten/director  # list models your key can actually reach
-npm run eval -w @unwritten/play-cli    # live go/no-go demo (costs real tokens)
+npm run models -w @howeverfar/director  # list models your key can actually reach
+npm run eval -w @howeverfar/play-cli    # live go/no-go demo (costs real tokens)
 ```

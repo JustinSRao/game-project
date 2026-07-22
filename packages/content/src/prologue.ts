@@ -1,4 +1,4 @@
-import { AreaSpec, type StoryPath } from "@unwritten/schema";
+import { AreaSpec, type StoryPath } from "@howeverfar/schema";
 
 /**
  * THE PROLOGUE — the fixed, hand-written opening every player shares

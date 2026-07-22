@@ -1,6 +1,6 @@
-import type { CanonFact } from "@unwritten/schema";
+import type { CanonFact } from "@howeverfar/schema";
 import { z } from "zod";
-import { NewFact } from "@unwritten/schema";
+import { NewFact } from "@howeverfar/schema";
 
 type NewFactT = z.infer<typeof NewFact>;
 

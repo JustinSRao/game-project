@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AreaSpec, type AreaGameState } from "@unwritten/schema";
+import { AreaSpec, type AreaGameState } from "@howeverfar/schema";
 import {
   applyAreaAction,
   applyConvoChoice,
