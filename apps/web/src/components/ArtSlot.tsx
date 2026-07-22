@@ -41,7 +41,7 @@ export function ArtSlot({ sessionId, request, label }: ArtSlotProps): ReactEleme
   }
 
   return (
-    <div className={className}>
+    <div className={`${className} art-slot--rendered`}>
       <img
         className="art-slot__image"
         src={src}

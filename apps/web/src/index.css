@@ -300,8 +300,9 @@ textarea:focus {
   margin-top: 2rem;
 }
 
-/* ---- Art slot placeholder ---- */
+/* ---- Art slots ---- */
 
+/* Base styling is the *placeholder* look: hatched fill, dashed border, caption. */
 .art-slot {
   display: flex;
   flex-direction: column;
@@ -336,6 +337,14 @@ textarea:focus {
 .art-slot--large {
   width: 100%;
   height: 280px;
+}
+
+/* With a real image, drop the placeholder scaffolding and let the art speak. */
+.art-slot--rendered {
+  background: none;
+  border: 1px solid var(--rule);
+  padding: 0;
+  overflow: hidden;
 }
 
 /*
