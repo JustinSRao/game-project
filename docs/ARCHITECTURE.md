@@ -130,6 +130,34 @@ Goal: every image in a playthrough looks like it came from one game.
 The text-only game must be excellent first. The art pipeline attaches to art requests in
 the DSL without touching the engine's core loop.
 
+### Notes for a real image provider (future)
+
+Steps 1, 3, 4 and 5 are built (`packages/art`). Step 2 is a `ProceduralPlaceholderProvider`
+standing in for a real model behind the `ImageProvider` interface. Swapping in a real one
+is deliberately a contained job — implement one interface, change one config value — and
+**`gpt-image-2` is the first candidate**, since it is already available on the project's
+OpenAI account. Deferred on purpose: the text loop deserves proper playtesting first, and
+placeholders make the layout, caching, and palette-lock behaviour testable for free.
+
+When it's time, the things that will bite:
+
+- **Do not post-process inside the provider.** `processArt` is applied uniformly to every
+  provider's output by `AssetCache.getOrGenerate`, so the universe's look is enforced in
+  exactly one place. A provider that pre-pixelizes its own output breaks that guarantee.
+- **Return an isolated subject on transparency** for sprites, portraits, and items. Ask
+  the model for a flat, uniform background and chroma-key it out before returning; the
+  quantize and outline passes both assume transparent already means "not the subject".
+- **Cost and latency move from zero to real.** The cache key already covers request +
+  style + pipeline version, so repeat views are free, but a first-time scene would now
+  wait on an image. Keep the placeholder as the immediate render and swap the real asset
+  in when it arrives — art is progressive enhancement (step 5), and that promise is what
+  makes a slow provider acceptable.
+- **Bump `PIPELINE_VERSION`** on any change that alters output bytes; it is folded into the
+  cache key, so bumping it invalidates every cached asset globally.
+- **Published bundles ship their asset cache.** Universes exported before a provider swap
+  keep the art they were published with, which is the intended behaviour — a universe's
+  look is part of its identity (ADR-0006).
+
 ## 5. Export & the public library
 
 A finished playthrough exports a **Universe Bundle**:

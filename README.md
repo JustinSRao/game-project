@@ -12,6 +12,9 @@ where anyone can play it for free: the overarching world and story arc stay fixe
 moment-to-moment events, dialogue, and character interactions are regenerated live for each
 new player.
 
+> **Trying it out?** [PLAYTEST.md](PLAYTEST.md) is a step-by-step guide: how to run it,
+> what should happen, and what to look for.
+
 ## The one rule that makes this work
 
 > **The AI writes the game's *content*, never the game's *code*.**
@@ -29,6 +32,7 @@ and regenerated, and the player only ever sees valid game states.
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design: engine, Director, canon, art pipeline, export |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Phased plan from text prototype to public game library |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Architecture Decision Records (why things are the way they are) |
+| [PLAYTEST.md](PLAYTEST.md) | How to run it yourself and what to look for |
 | [CLAUDE.md](CLAUDE.md) | Instructions for AI coding agents working on this repo |
 
 ## Repository layout
@@ -60,24 +64,25 @@ cp .env.example .env                    # then put your OPENAI_API_KEY in it
 server-side. The Director works against either OpenAI (default) or Anthropic; see
 [ADR-0008](docs/DECISIONS.md).
 
-In the browser — two processes:
+In the browser — two terminals:
 
 ```sh
 npm start -w @unwritten/server          # API on :3001 (the key lives here, not in the browser)
 npm run dev -w @unwritten/web           # client on :5173, proxies /api to the server
 ```
 
-Or in the terminal:
+Or in one terminal:
 
 ```sh
-cd apps/play-cli
-npm start                               # new playthrough
-npm start -- --sessions                 # list saves     · --resume <id> to continue
-npm start -- --library                  # published universes · --replay <path> to play one
+npm start -w @unwritten/play-cli                    # new playthrough
+npm start -w @unwritten/play-cli -- --sessions      # list saves · --resume <id> to continue
+npm start -w @unwritten/play-cli -- --library       # published universes · --replay <path>
 ```
 
 Finish a game and you'll be offered to publish it to your local library, where it can be
 replayed — same world and story arc, freshly generated moment-to-moment.
+
+Full walkthrough, including what each step should look like: **[PLAYTEST.md](PLAYTEST.md)**.
 
 ## Development
 

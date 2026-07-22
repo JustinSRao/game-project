@@ -54,7 +54,13 @@ The whole vision, minus graphics, in a terminal/basic web UI.
       them pixel-exact in the web client's art slots
 - [x] Style bible generation at genre-reveal time (Stylist role, locked per universe,
       inherited by replays)
-- [ ] Real image-model provider behind `ImageProvider` (placeholders render today)
+- [ ] Real image-model provider behind `ImageProvider` (placeholders render today).
+      **Deferred by choice, not blocked.** `gpt-image-2` is available on the project's
+      OpenAI account and is the obvious first candidate — the seam, the mandatory
+      post-processing, and the content-hash cache already exist, so this is one class
+      implementing `ImageProvider` plus a config switch, with no change to the pipeline
+      or its callers. Worth doing once the text loop has been playtested properly; see
+      "Notes for a real image provider" in ARCHITECTURE.md for the gotchas.
 - [ ] Portraits for recurring characters, backgrounds per location — the Scene Writer
       emits art requests, but nothing yet makes a returning character reuse one
 
