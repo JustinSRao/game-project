@@ -40,7 +40,10 @@ packages/
   content/     The Anchor — the only hand-authored scenes in the game
   director/    The AI Director: Profiler, Architect, Scene Writer, Checker, Canon
   library/     Persistence, universe bundle export/import, replay constraints
+  art/         Pixel-art pipeline: provider seam, palette-lock post-processing, cache
 apps/
+  server/      HTTP API over the Director (holds the API key; the browser never does)
+  web/         React client — the browser game
   play-cli/    Playable terminal client (new / resume / library / replay)
 docs/          Vision, architecture, roadmap, decision records
 .claude/       Skills and instructions for AI-assisted development
@@ -51,6 +54,18 @@ docs/          Vision, architecture, roadmap, decision records
 ```sh
 npm install
 export ANTHROPIC_API_KEY=sk-ant-…       # the Director authors with the Claude API
+```
+
+In the browser — two processes:
+
+```sh
+npm start -w @unwritten/server          # API on :3001 (the key lives here, not in the browser)
+npm run dev -w @unwritten/web           # client on :5173, proxies /api to the server
+```
+
+Or in the terminal:
+
+```sh
 cd apps/play-cli
 npm start                               # new playthrough
 npm start -- --sessions                 # list saves     · --resume <id> to continue

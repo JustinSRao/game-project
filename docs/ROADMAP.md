@@ -26,8 +26,8 @@ The whole vision, minus graphics, in a terminal/basic web UI.
 
 ## Phase 2 — Whole-game coherence
 
-- [x] Architect: full-game Story Arc, act advancement, planted setups → payoffs
-      (revision-on-derailment prompt exists; wiring it to a trigger is open)
+- [x] Architect: full-game Story Arc, act advancement, planted setups → payoffs,
+      revision triggered by arc-drift detection (3 scenes without beat progress)
 - [x] Continuity Checker (Haiku) gating scene acceptance against canon
 - [x] Endings: final-act gating, server-owned termination; playthroughs complete
 - [ ] Speculative generation + streaming narration; latency good enough to feel
@@ -36,10 +36,18 @@ The whole vision, minus graphics, in a terminal/basic web UI.
 
 ## Phase 3 — Presentation
 
-- [ ] Web client: React + PixiJS, scene layout, choice UI, free-text input, streamed text
-- [ ] Style bible generation at genre-reveal time
-- [ ] Pixel-art pipeline: image model → pixelize/palette-lock → content-hash cache,
-      placeholder-first rendering
+- [x] `apps/server`: HTTP API over the Director (session create/resume/replay, turns,
+      publish) — keeps the API key server-side
+- [x] Web client: React, scene layout, choice UI, free-text input, typewriter narration.
+      Plain DOM/CSS rather than PixiJS — the presentation is typographic, and PixiJS buys
+      nothing until animated sprites exist. Revisit if that changes.
+- [x] Pixel-art pipeline: provider seam → pixelize/palette-lock/outline → content-hash
+      cache, placeholder-first rendering
+- [ ] Serve generated assets from the server and render them in the web client's art
+      slots (the two halves exist; connecting them is the next step)
+- [ ] Style bible generation at genre-reveal time (the pipeline consumes a StyleBible;
+      nothing authors one yet)
+- [ ] Real image-model provider behind `ImageProvider`
 - [ ] Portraits for recurring characters, backgrounds per location
 
 ## Phase 4 — The library
