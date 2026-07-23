@@ -34,12 +34,31 @@ export type PanelState =
       entityId: string;
     }
   | { mode: "choices"; choices: ConvoChoice[]; entityId: string }
-  | { mode: "reply"; speaker: string; text: string; check?: CheckResult };
+  | { mode: "reply"; speaker: string; text: string; check?: CheckResult; speakerId?: string };
 
 let state: PanelState = { mode: "closed" };
 
 export function panelState(): PanelState {
   return state;
+}
+
+/**
+ * Portraits for characters, keyed by entity id, filled in as the server
+ * returns them (they are generated once and cached). A conversation shows the
+ * portrait of whoever you are talking to; it pops in if it arrives mid-scene.
+ */
+const portraits = new Map<string, string>();
+
+export function setPortrait(entityId: string, url: string): void {
+  portraits.set(entityId, url);
+  if (conversationEntityId(state) === entityId) render();
+}
+
+/** The entity a panel is a conversation with, if any (for the portrait slot). */
+function conversationEntityId(s: PanelState): string | undefined {
+  if (s.mode === "dialogue" || s.mode === "choices") return s.entityId;
+  if (s.mode === "reply") return s.speakerId;
+  return undefined;
 }
 
 /**
@@ -84,11 +103,27 @@ function render(): void {
   panel.innerHTML = "";
   if (state.mode === "closed") return;
 
+  // Portrait of the conversation partner, when we have one.
+  const talkingTo = conversationEntityId(state);
+  const portraitUrl = talkingTo ? portraits.get(talkingTo) : undefined;
+  if (portraitUrl) {
+    const p = document.createElement("div");
+    p.className = "portrait";
+    const img = document.createElement("img");
+    img.src = portraitUrl;
+    p.appendChild(img);
+    panel.appendChild(p);
+  }
+
+  const body = document.createElement("div");
+  body.className = "body";
+  panel.appendChild(body);
+
   const add = (cls: string, text: string): HTMLDivElement => {
     const el = document.createElement("div");
     el.className = cls;
     el.textContent = text;
-    panel.appendChild(el);
+    body.appendChild(el);
     return el;
   };
 
@@ -155,7 +190,7 @@ function render(): void {
     }
     wrap.appendChild(el);
   });
-  panel.appendChild(wrap);
+  body.appendChild(wrap);
   add("hint", "1–" + String(state.choices.length) + " · choose");
 }
 
@@ -208,8 +243,19 @@ export function showDialogue(
   render();
 }
 
-export function showReply(speaker: string, text: string, check?: CheckResult): void {
-  state = { mode: "reply", speaker, text, ...(check ? { check } : {}) };
+export function showReply(
+  speaker: string,
+  text: string,
+  check?: CheckResult,
+  speakerId?: string,
+): void {
+  state = {
+    mode: "reply",
+    speaker,
+    text,
+    ...(check ? { check } : {}),
+    ...(speakerId ? { speakerId } : {}),
+  };
   render();
 }
 
@@ -233,18 +279,39 @@ export function setSheet(sheet: CharacterSheet | undefined): void {
     return;
   }
   sheetEl.innerHTML = "";
-  const pools = document.createElement("div");
-  pools.className = "pool";
-  pools.innerHTML = Object.entries(sheet.resources)
-    .map(([id, p]) => `${RESOURCE_LABEL[id] ?? id} <b>${p.current}</b>/${p.max}`)
-    .join("   ");
-  sheetEl.appendChild(pools);
+  const poolColor: Record<string, string> = { vigor: "var(--vigor)", focus: "var(--focus)" };
+  for (const [id, p] of Object.entries(sheet.resources)) {
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    const lbl = document.createElement("span");
+    lbl.className = "lbl";
+    lbl.textContent = RESOURCE_LABEL[id] ?? id;
+    const track = document.createElement("div");
+    track.className = "track";
+    const fill = document.createElement("div");
+    fill.className = "fill";
+    const pct = p.max > 0 ? Math.max(0, Math.min(1, p.current / p.max)) : 0;
+    fill.style.width = `${Math.round(pct * 100)}%`;
+    fill.style.background = poolColor[id] ?? "var(--accent)";
+    track.appendChild(fill);
+    const num = document.createElement("span");
+    num.className = "num";
+    num.textContent = `${p.current}/${p.max}`;
+    bar.append(lbl, track, num);
+    sheetEl.appendChild(bar);
+  }
 
   const attrs = document.createElement("div");
   attrs.className = "attrs";
-  attrs.textContent = Object.entries(sheet.attributes)
-    .map(([id, v]) => `${id} ${v}`)
-    .join("   ");
+  for (const [id, v] of Object.entries(sheet.attributes)) {
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    const name = document.createTextNode(`${id} `);
+    const val = document.createElement("b");
+    val.textContent = String(v);
+    chip.append(name, val);
+    attrs.appendChild(chip);
+  }
   sheetEl.appendChild(attrs);
 
   for (const [, standing] of Object.entries(sheet.standings)) {

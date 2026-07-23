@@ -446,7 +446,7 @@ export class PlayScene extends Phaser.Scene {
     // A check's own prose is the real outcome, so it wins over the choice's
     // reply when both exist.
     const text = check ? check.text : reply;
-    if (text !== undefined) ui.showReply(speaker, text, check);
+    if (text !== undefined) ui.showReply(speaker, text, check, picked.entityId);
     else ui.closePanel();
     this.mirror({ type: "convoChoice", entityId: picked.entityId, choiceId: picked.choice.id });
   }

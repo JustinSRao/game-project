@@ -6,17 +6,23 @@
     <title>However Far</title>
     <style>
       :root {
-        --bg: #0b0c12;
-        --panel: #14161f;
-        --edge: #2c2f3f;
-        --text: #e8e6df;
-        --dim: #9a97a8;
+        --bg: #0a0b11;
+        --panel: #171a27;
+        --panel-2: #20243a;
+        --edge: #3a3f5c;
+        --edge-soft: #2a2e44;
+        --text: #ece9e0;
+        --dim: #9a97ac;
         --accent: #ffcd75;
+        --good: #7bd88f;
+        --bad: #e5637d;
+        --vigor: #e5637d;
+        --focus: #8fd3ff;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { height: 100%; }
       body {
-        background: var(--bg);
+        background: radial-gradient(1200px 820px at 50% -12%, #171a2c, var(--bg));
         color: var(--text);
         font-family: Georgia, "Times New Roman", serif;
         display: flex;
@@ -25,108 +31,255 @@
         overflow: hidden;
       }
       #stage { position: relative; }
-      #app canvas { display: block; image-rendering: pixelated; }
+      #app canvas {
+        display: block;
+        image-rendering: pixelated;
+        border-radius: 4px;
+        box-shadow: 0 12px 44px rgba(0, 0, 0, 0.62);
+      }
+      .mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+
+      /* ---- HUD ---- */
       #hud {
         position: absolute;
-        top: 10px;
-        left: 12px;
-        right: 12px;
+        top: 12px;
+        left: 14px;
+        right: 14px;
         display: flex;
         justify-content: space-between;
+        align-items: flex-start;
         gap: 12px;
         pointer-events: none;
-        font-family: ui-monospace, Consolas, monospace;
-        font-size: 13px;
-        color: var(--dim);
-        text-shadow: 0 1px 2px #000;
-      }
-      #hud .prompt { color: var(--accent); }
-      #panel {
-        position: absolute;
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
-        background: color-mix(in srgb, var(--panel) 92%, transparent);
-        border: 1px solid var(--edge);
-        border-radius: 6px;
-        padding: 14px 18px;
-        min-height: 88px;
-        display: none;
-        flex-direction: column;
-        gap: 8px;
-      }
-      #panel.open { display: flex; }
-      #panel .speaker {
-        font-family: ui-monospace, Consolas, monospace;
+        font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
         font-size: 12px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+      }
+      #hud-area {
+        background: linear-gradient(180deg, var(--panel-2), var(--panel));
+        border: 1px solid var(--edge);
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 3px 10px rgba(0, 0, 0, 0.4);
+        border-radius: 6px;
+        padding: 5px 11px;
+        color: var(--accent);
+        letter-spacing: 0.03em;
+      }
+      #hud-prompt {
+        background: rgba(10, 11, 17, 0.72);
+        border: 1px solid var(--edge-soft);
+        border-radius: 999px;
+        padding: 5px 12px;
         color: var(--accent);
       }
-      #panel .line { font-size: 16px; line-height: 1.55; }
-      #panel .choices { display: flex; flex-direction: column; gap: 4px; margin-top: 2px; }
-      #panel .choice { font-size: 15px; color: var(--text); }
-      #panel .choice .key {
-        font-family: ui-monospace, Consolas, monospace;
-        color: var(--accent);
-        margin-right: 8px;
-      }
+      #hud-prompt:empty { display: none; }
+
+      /* ---- Character sheet ---- */
       #sheet {
         position: absolute;
-        top: 32px;
-        left: 12px;
-        font-family: ui-monospace, Consolas, monospace;
-        font-size: 12px;
-        color: var(--dim);
-        text-shadow: 0 1px 2px #000;
+        top: 52px;
+        left: 14px;
+        background: linear-gradient(180deg, var(--panel-2), var(--panel));
+        border: 1px solid var(--edge);
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 4px 14px rgba(0, 0, 0, 0.4);
+        border-radius: 8px;
+        padding: 9px 11px;
         pointer-events: none;
-        line-height: 1.5;
+        min-width: 150px;
       }
-      #sheet .pool { color: var(--text); }
-      #sheet .pool b { color: var(--accent); font-weight: normal; }
-      #sheet .attrs { color: var(--dim); }
-      #sheet .standing { color: var(--dim); }
+      #sheet:empty { display: none; }
+      #sheet .bar { display: flex; align-items: center; gap: 7px; margin: 3px 0; }
+      #sheet .bar .lbl {
+        width: 40px;
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--dim);
+      }
+      #sheet .bar .track {
+        width: 88px;
+        height: 8px;
+        background: #0c0e16;
+        border: 1px solid var(--edge-soft);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      #sheet .bar .fill { height: 100%; border-radius: 3px; }
+      #sheet .bar .num {
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 10px;
+        color: var(--text);
+      }
+      #sheet .attrs { display: flex; gap: 5px; margin-top: 7px; }
+      #sheet .chip {
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 10px;
+        color: var(--text);
+        background: #0c0e16;
+        border: 1px solid var(--edge-soft);
+        border-radius: 4px;
+        padding: 2px 6px;
+      }
+      #sheet .chip b { color: var(--accent); font-weight: normal; }
+      #sheet .standing {
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 10px;
+        color: var(--dim);
+        margin-top: 5px;
+      }
+
+      /* ---- Quest log ---- */
       #quests {
         position: absolute;
-        top: 32px;
-        right: 12px;
-        max-width: 260px;
-        text-align: right;
-        font-family: ui-monospace, Consolas, monospace;
-        font-size: 12px;
-        color: var(--dim);
-        text-shadow: 0 1px 2px #000;
+        top: 52px;
+        right: 14px;
+        max-width: 268px;
+        background: linear-gradient(180deg, var(--panel-2), var(--panel));
+        border: 1px solid var(--edge);
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 4px 14px rgba(0, 0, 0, 0.4);
+        border-radius: 8px;
+        padding: 9px 11px;
         pointer-events: none;
+        text-align: left;
+      }
+      #quests:empty { display: none; }
+      #quests .qt {
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 11px;
+        letter-spacing: 0.03em;
+        color: var(--accent);
+        margin-top: 7px;
+      }
+      #quests .qt:first-child { margin-top: 0; }
+      #quests .qo {
+        font-size: 12px;
+        color: var(--text);
+        padding-left: 15px;
+        position: relative;
         line-height: 1.5;
       }
-      #quests .qt { color: var(--accent); margin-top: 6px; }
-      #quests .qo { color: var(--text); }
-      #quests .qo.done { color: var(--dim); text-decoration: line-through; }
-      #panel .roll {
+      #quests .qo::before {
+        content: "\25C7";
+        position: absolute;
+        left: 0;
+        color: var(--dim);
+      }
+      #quests .qo.done { color: var(--dim); }
+      #quests .qo.done::before { content: "\25C6"; color: var(--good); }
+
+      /* ---- Dialogue / narration message box ---- */
+      #panel {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        background: linear-gradient(180deg, var(--panel-2), var(--panel));
+        border: 2px solid var(--accent);
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.65), 0 8px 28px rgba(0, 0, 0, 0.5);
+        border-radius: 10px;
+        padding: 15px 18px;
+        min-height: 96px;
+        display: none;
+        gap: 16px;
+      }
+      #panel.open { display: flex; }
+      #panel .portrait {
+        flex: 0 0 auto;
+        width: 84px;
+        height: 84px;
+        border: 2px solid var(--edge);
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6);
+        border-radius: 8px;
+        background: #0c0e16;
+        overflow: hidden;
+        align-self: flex-start;
+      }
+      #panel .portrait img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        image-rendering: pixelated;
+      }
+      #panel .body { flex: 1 1 auto; display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+      #panel .speaker {
+        align-self: flex-start;
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 11px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--accent);
+        background: rgba(0, 0, 0, 0.28);
+        border: 1px solid var(--accent-soft, #6f5f34);
+        border-radius: 4px;
+        padding: 2px 8px;
+      }
+      #panel .speaker:empty { display: none; }
+      #panel .line { font-size: 16px; line-height: 1.6; color: var(--text); }
+      #panel .choices { display: flex; flex-direction: column; gap: 5px; margin-top: 3px; }
+      #panel .choice {
+        display: flex;
+        align-items: baseline;
+        gap: 9px;
+        font-size: 15px;
+        color: var(--text);
+        background: rgba(0, 0, 0, 0.22);
+        border: 1px solid var(--edge-soft);
+        border-radius: 6px;
+        padding: 6px 10px;
+        transition: border-color 120ms, background 120ms;
+      }
+      #panel .choice .key {
+        flex: 0 0 auto;
         font-family: ui-monospace, Consolas, monospace;
         font-size: 12px;
-        letter-spacing: 0.04em;
+        color: #1a1204;
+        background: var(--accent);
+        border-radius: 4px;
+        width: 18px;
+        height: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
-      #panel .roll.win { color: #7bb05a; }
-      #panel .roll.lose { color: #b13e53; }
-      #panel .choice.locked { color: var(--dim); }
+      #panel .choice:hover { border-color: var(--accent); background: rgba(255, 205, 117, 0.08); }
+      #panel .choice.locked { color: var(--dim); opacity: 0.7; }
+      #panel .choice.locked .key { background: var(--edge); color: var(--dim); }
       #panel .choice .cost {
+        margin-left: auto;
         font-family: ui-monospace, Consolas, monospace;
         font-size: 11px;
         color: var(--accent);
-        margin-left: 8px;
       }
-      #panel .choice.locked .cost { color: #b13e53; }
+      #panel .choice.locked .cost { color: var(--bad); }
+      #panel .roll {
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 12px;
+        letter-spacing: 0.03em;
+        border-radius: 5px;
+        padding: 4px 9px;
+        align-self: flex-start;
+      }
+      #panel .roll.win { color: var(--good); background: rgba(123, 216, 143, 0.1); border: 1px solid rgba(123, 216, 143, 0.4); }
+      #panel .roll.lose { color: var(--bad); background: rgba(229, 99, 125, 0.1); border: 1px solid rgba(229, 99, 125, 0.4); }
       #panel .hint {
         font-family: ui-monospace, Consolas, monospace;
         font-size: 11px;
         color: var(--dim);
         align-self: flex-end;
+        margin-top: auto;
       }
+      #panel .hint:empty { display: none; }
+      #panel .line.streaming::after {
+        content: "\258D";
+        color: var(--accent);
+        animation: blink 900ms steps(2, start) infinite;
+        margin-left: 2px;
+      }
+      @keyframes blink { to { visibility: hidden; } }
+
+      /* ---- The veil: menus, interstitials, endings ---- */
       #veil {
         position: absolute;
         inset: 0;
-        background: color-mix(in srgb, var(--bg) 94%, transparent);
+        background: radial-gradient(900px 700px at 50% 40%, rgba(10, 11, 17, 0.86), rgba(10, 11, 17, 0.96));
         display: none;
         align-items: center;
         justify-content: center;
@@ -134,30 +287,48 @@
         padding: 40px;
       }
       #veil.open { display: flex; }
-      #veil .inner { max-width: 560px; display: flex; flex-direction: column; gap: 16px; }
-      #veil h1 { font-size: 22px; font-weight: normal; color: var(--accent); letter-spacing: 0.04em; }
-      #veil p { font-size: 15px; line-height: 1.6; color: var(--text); }
+      #veil .inner { max-width: 580px; display: flex; flex-direction: column; gap: 18px; }
+      #veil h1 {
+        font-size: 24px;
+        font-weight: normal;
+        color: var(--accent);
+        letter-spacing: 0.05em;
+        text-shadow: 0 2px 12px rgba(255, 205, 117, 0.25);
+      }
+      #veil p { font-size: 15px; line-height: 1.68; color: var(--text); }
       #veil .hint { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--dim); }
-      /* Interstitial lines arrive rather than appear — the wait is a moment in
-         the fiction, not a progress bar. */
       #veil p.arriving { animation: arrive 1200ms ease-out; }
       @keyframes arrive { from { opacity: 0; } 40% { opacity: 0.85; } to { opacity: 1; } }
-      #panel .line.streaming::after {
-        content: "▍";
-        color: var(--accent);
-        animation: blink 900ms steps(2, start) infinite;
-        margin-left: 2px;
+      #veil .options { display: flex; flex-direction: column; gap: 8px; text-align: left; margin: 4px auto 0; min-width: 320px; }
+      #veil .option {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        font-size: 15px;
+        color: var(--text);
+        background: linear-gradient(180deg, var(--panel-2), var(--panel));
+        border: 1px solid var(--edge);
+        border-radius: 7px;
+        padding: 9px 13px;
+        transition: border-color 120ms;
       }
-      @keyframes blink { to { visibility: hidden; } }
-      #veil .options { display: flex; flex-direction: column; gap: 8px; text-align: left; margin: 0 auto; }
-      #veil .option { font-size: 15px; color: var(--text); }
+      #veil .option:hover { border-color: var(--accent); }
       #veil .option .key {
+        flex: 0 0 auto;
         font-family: ui-monospace, Consolas, monospace;
-        color: var(--accent);
-        margin-right: 10px;
+        font-size: 12px;
+        color: #1a1204;
+        background: var(--accent);
+        border-radius: 4px;
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
+
       /* The Call — the only form in the game, so it dresses like the game. */
-      #veil .inner.call { max-width: 620px; }
+      #veil .inner.call { max-width: 640px; }
       .call-form { display: flex; flex-direction: column; gap: 12px; text-align: left; }
       .call-form .field { display: flex; flex-direction: column; gap: 4px; }
       .call-form .field span {
@@ -174,10 +345,10 @@
         line-height: 1.5;
       }
       .call-form input {
-        background: color-mix(in srgb, var(--panel) 92%, transparent);
+        background: #0c0e16;
         border: 1px solid var(--edge);
-        border-radius: 4px;
-        padding: 8px 10px;
+        border-radius: 5px;
+        padding: 9px 11px;
         color: var(--text);
         font-family: Georgia, "Times New Roman", serif;
         font-size: 15px;
@@ -187,32 +358,36 @@
       .call-form .key-field { margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--edge); }
       .call-actions { display: flex; gap: 12px; margin-top: 6px; }
       .call-actions button {
-        background: transparent;
+        background: linear-gradient(180deg, var(--panel-2), var(--panel));
         border: 1px solid var(--accent);
         color: var(--accent);
-        border-radius: 4px;
-        padding: 8px 18px;
+        border-radius: 6px;
+        padding: 9px 20px;
         font-family: Georgia, "Times New Roman", serif;
         font-size: 15px;
         cursor: pointer;
+        transition: border-color 120ms, color 120ms;
       }
       .call-actions button.quiet { border-color: var(--edge); color: var(--dim); }
       .call-actions button:hover { border-color: var(--text); color: var(--text); }
+
+      /* ---- Free-text line ---- */
       #say {
         position: absolute;
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
-        background: color-mix(in srgb, var(--panel) 92%, transparent);
-        border: 1px solid var(--accent);
-        border-radius: 6px;
-        padding: 12px 16px;
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        background: linear-gradient(180deg, var(--panel-2), var(--panel));
+        border: 2px solid var(--accent);
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.65), 0 8px 24px rgba(0, 0, 0, 0.5);
+        border-radius: 10px;
+        padding: 13px 16px;
         display: none;
         align-items: center;
         gap: 10px;
       }
       #say.open { display: flex; }
-      #say .mark { font-family: ui-monospace, Consolas, monospace; color: var(--accent); }
+      #say .mark { font-family: ui-monospace, Consolas, monospace; color: var(--accent); font-size: 18px; }
       #say input {
         flex: 1;
         background: transparent;
@@ -236,9 +411,9 @@
       <div id="quests"></div>
       <div id="panel"></div>
       <div id="say">
-        <span class="mark">»</span>
+        <span class="mark">&#187;</span>
         <input id="say-input" type="text" maxlength="500" autocomplete="off" spellcheck="false"
-               placeholder="say or do something in your own words…" />
+               placeholder="say or do something in your own words&#8230;" />
       </div>
       <div id="veil"></div>
     </div>
