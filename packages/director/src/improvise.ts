@@ -3,7 +3,7 @@ import type {
   AreaSpec,
   CanonFact,
   PlayerProfile,
-  StoryPath,
+  SoloPath,
 } from "@howeverfar/schema";
 import { DIRECTOR_CONFIG } from "./config.js";
 import type { ModelClient } from "./modelClient.js";
@@ -47,7 +47,7 @@ const HIS_NOTE =
   "Path B — Itsuki's side: grounded psychological drama. Quiet, precise, unsettling. The world has forgotten her; only he remembers.";
 
 export interface ImproviseContext {
-  path: Exclude<StoryPath, "shared" | "reunion">;
+  path: SoloPath;
   /** Where the player is standing — the only stage this moment may use. */
   area: AreaSpec;
   state: AreaGameState;

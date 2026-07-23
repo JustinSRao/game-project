@@ -1,4 +1,4 @@
-import type { StoryPath } from "@howeverfar/schema";
+import type { SoloPath } from "@howeverfar/schema";
 
 /**
  * STORY.md's fixed seed facts, loaded as immutable, highest-priority canon
@@ -7,7 +7,7 @@ import type { StoryPath } from "@howeverfar/schema";
  * Itsuki and Suzune are final (ADR-0016).
  */
 export const PATH_SEED_CANON: Readonly<
-  Record<Exclude<StoryPath, "shared">, ReadonlyArray<{ statement: string; entities: string[] }>>
+  Record<SoloPath, ReadonlyArray<{ statement: string; entities: string[] }>>
 > = {
   her: [
     {

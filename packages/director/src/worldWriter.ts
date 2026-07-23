@@ -6,7 +6,7 @@ import {
   PlayerProfile,
   Slug,
   StoryArc,
-  StoryPath,
+  SoloPath,
 } from "@howeverfar/schema";
 import { validateAreaIntegrity } from "@howeverfar/engine";
 import { z } from "zod";
@@ -47,7 +47,7 @@ export interface WriteAreaResult {
 /** Plan a path's arc within STORY.md's rails (threshold ending, gated reveals). */
 export async function createWorldArc(
   model: ModelClient,
-  path: Exclude<StoryPath, "shared">,
+  path: SoloPath,
   profile: PlayerProfile,
   facts: readonly CanonFact[],
 ): Promise<StoryArc> {

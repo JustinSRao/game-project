@@ -118,8 +118,22 @@ export const Portal = z.object({
 });
 export type Portal = z.infer<typeof Portal>;
 
-export const StoryPath = z.enum(["shared", "her", "his"]);
+/**
+ * Which side of the story an area belongs to (STORY.md). "shared" is the
+ * hand-authored prologue, before the player has chosen; "reunion" is the
+ * shared finale of Phase 7, which belongs to neither path and is why it is
+ * the only place the erasure stops (metaFx is Path B only — ADR-0015).
+ */
+export const StoryPath = z.enum(["shared", "her", "his", "reunion"]);
 export type StoryPath = z.infer<typeof StoryPath>;
+
+/**
+ * The two sides a single player can actually live. Most of the Director is
+ * written against this rather than `StoryPath`: profiling, arcs, path
+ * registers and thresholds all presuppose one protagonist.
+ */
+export const SoloPath = z.enum(["her", "his"]);
+export type SoloPath = z.infer<typeof SoloPath>;
 
 export const AreaSpec = z.object({
   dslVersion: z.literal(AREA_DSL_VERSION),

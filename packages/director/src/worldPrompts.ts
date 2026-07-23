@@ -5,7 +5,7 @@ import type {
   CharacterRecord,
   PlayerProfile,
   StoryArc,
-  StoryPath,
+  SoloPath,
 } from "@howeverfar/schema";
 import { AUTHOR_PRINCIPLES } from "./prompts.js";
 
@@ -115,7 +115,7 @@ function areaStateSummary(state: AreaGameState): string {
 export interface WorldWriterContext {
   /** Everyone the player has met, so returning characters stay themselves. */
   characters?: readonly CharacterRecord[];
-  path: Exclude<StoryPath, "shared">;
+  path: SoloPath;
   profile: PlayerProfile;
   arc: StoryArc;
   facts: readonly CanonFact[];
@@ -166,7 +166,7 @@ Rules:
 - currentActId must be the first act's id.`;
 
 export function buildWorldArchitectUser(
-  path: Exclude<StoryPath, "shared">,
+  path: SoloPath,
   profile: PlayerProfile,
   facts: readonly CanonFact[],
 ): string {

@@ -3,7 +3,7 @@ import {
   type CanonFact,
   type PlayerProfile,
   type StoryArc,
-  type StoryPath,
+  type SoloPath,
 } from "@howeverfar/schema";
 import { DIRECTOR_CONFIG } from "./config.js";
 import type { ModelClient } from "./modelClient.js";
@@ -43,7 +43,7 @@ ${THRESHOLD_RULES}
 Output an object matching the provided schema.`;
 
 export interface ThresholdContext {
-  path: Exclude<StoryPath, "shared">;
+  path: SoloPath;
   profile: PlayerProfile;
   arc: StoryArc;
   facts: readonly CanonFact[];
@@ -138,7 +138,7 @@ export async function writeThreshold(
  */
 export function checkThreshold(
   ending: ThresholdEnding,
-  path: Exclude<StoryPath, "shared">,
+  path: SoloPath,
 ): string[] {
   const problems: string[] = [];
 

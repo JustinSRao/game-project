@@ -4,7 +4,7 @@ import type {
   AreaSessionSave,
   AreaSpec,
   AreaTransition,
-  StoryPath,
+  SoloPath,
   ThresholdEnding,
   TurnStage,
 } from "@howeverfar/schema";
@@ -352,7 +352,7 @@ export class WorldDirector {
       case "generate": {
         if (this.session.phase === "prologue") {
           const path = portalId ? PATH_CHOICE_PORTALS[portalId] : undefined;
-          if (!path || path === "shared") {
+          if (path !== "her" && path !== "his") {
             throw new Error(
               `generate transition "${label}" reached during the prologue outside the crossing`,
             );
@@ -450,7 +450,7 @@ export class WorldDirector {
 
   /** The crossing: read the player, load the rails, plan their side of the story. */
   private async commitPathChoice(
-    path: Exclude<StoryPath, "shared">,
+    path: SoloPath,
     events: TurnEvents = {},
   ): Promise<void> {
     this.log(`path chosen: ${path} — profiling player and planning the arc`);
@@ -484,7 +484,8 @@ export class WorldDirector {
   }
 
   private writerContext(hint: string): WorldWriterContext {
-    if (!this.session.profile || !this.session.arc || this.session.path === "shared") {
+    const path = this.session.path;
+    if (!this.session.profile || !this.session.arc || (path !== "her" && path !== "his")) {
       throw new Error("writer context requested before the path choice");
     }
     const recentIds = this.session.state.visitedAreaIds.slice(-2);
@@ -498,7 +499,7 @@ export class WorldDirector {
       ...this.session.state.inventory.map((i) => i.item),
     ];
     return {
-      path: this.session.path,
+      path,
       profile: this.session.profile,
       arc: this.session.arc,
       facts: this.ledger.retrieve(focusEntities, DIRECTOR_CONFIG.retrievalLimit),
