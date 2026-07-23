@@ -480,3 +480,77 @@ A player cannot type their way into a state the engine did not authorize (ADR-00
 the world can acknowledge anything and grant nothing. Inside the prologue nothing
 changes: the evening is hand-authored (CLAUDE.md invariant 4) and the acknowledgement
 stays honest about that.
+
+## ADR-0023: Two players find each other by calling for each other
+
+**Status:** Accepted · 2026-07-23
+
+ROADMAP asked: *"Reunion matchmaking: how do two players find each other? (Friends-first?
+Codes?)"* **Friends-first, by mutual call.**
+
+There is no matchmaking service, no lobby, and no account system, because ADR-0013 says
+there will not be one and because the Reunion does not want strangers. STORY.md's finale
+is two people who each spent a whole playthrough alone with one half of the same loss;
+pairing them with whoever is queueing would be a different game.
+
+**The rule.** Both players fill in a name and an address for themselves and for the
+person they are reaching for. Two calls pair when each names the other's address and
+they came from opposite paths. Names are displayed, never matched on — people spell each
+other's names however they like. A call to yourself, a call from the same side, and a
+one-sided call all refuse; a call nobody has answered waits, costs nothing, and is
+replaced by a newer one from the same address.
+
+**Why email rather than a code.** A code is one more thing to lose, and it has no place
+in the fiction. An address is something the two of them already exchanged — this is
+friends-first by construction — and it lets the same field be both the identity the
+pairing matches on and the address a licence is bound to (ADR-0024). One question, asked
+once, doing three jobs.
+
+**It is diegetic on both sides, and only the price tag isn't.** Her side rings a bell
+toward a name; his side writes a name back into the register that erased it. Both
+gestures need the same four fields, which is why the same form fits both. The licence
+field is deliberately *not* dressed up: dressing a purchase as story would be a trick.
+See docs/REUNION.md for the fiction and its two flagged inferences.
+
+**Consequence:** a `PlaythroughExport` — not the save file — travels inside the call, so
+it does not matter which machine a playthrough was lived on. One player hosts; the other
+points a client at them. Canon from the two sides is merged **side-keyed and
+unreconciled**: two accounts of the same weeks are supposed to disagree about what was
+visible, and flattening that would erase what the finale exists to reassemble.
+
+## ADR-0024: The Reunion is paid for, and the licence is a receipt, not a lock
+
+**Status:** Accepted · 2026-07-23
+
+The Reunion is the DLC. It has to be gateable, and the gate has to work on somebody's
+laptop with no internet, because the Reunion is self-hosted and ADR-0013 forbids paying
+for infrastructure to check licences.
+
+**The mechanism.** An offline key: `HMAC(secret, product + email)`, Crockford base32,
+grouped for reading aloud. Verification needs the shared secret, the key, and the address
+that claims it — no call home, no database, no service. Minting is a one-line CLI, so any
+storefront that can send an email can fulfil an order.
+
+**Bound to email, which the story was already asking for.** The Call needs an address to
+pair on (ADR-0023). Binding the licence to that same address means the paid gate asks the
+player for nothing the fiction had not already asked for.
+
+**Both players are checked.** Not just the host, and not just the caller. A finale is
+something two people bought; letting one carry the other would make a two-seat experience
+a one-seat purchase.
+
+**Fails closed.** A build with no `HOWEVERFAR_LICENSE_SECRET` refuses rather than gives
+the DLC away. Development uses an explicit, separate `HOWEVERFAR_REUNION_UNLOCKED=1` — an
+unconfigured build must never be mistaken for an unlocked one.
+
+**What this is not, stated plainly:** offline licensing is not copy protection. Anyone
+running their own server can read the secret out of their own build, and no amount of
+obfuscation changes that for a self-hosted game. This is a receipt. It keeps honest
+buyers straight, it is proportionate to a finale both players must finish an entire
+playthrough to reach, and it does not cost the project a cent to operate. If the owner
+later wants real entitlement checks, that is a hosted service and a new ADR — the seam
+(`packages/entitlement`) is where it would go, and nothing above it would change.
+
+**Not decided here:** which storefront takes the money. Stripe, Gumroad, itch, a page on
+the owner's own site — all of them can deliver a key string in a receipt, so all of them
+compose with this, and none of them is a code change beyond the fulfilment hook.

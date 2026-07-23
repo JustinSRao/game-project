@@ -14,6 +14,7 @@ encodes the project's invariants.
 - `docs/ARCHITECTURE.md` — system design. Read before touching Director, engine, or schema.
 - `docs/DECISIONS.md` — ADRs. If your change contradicts an ADR, stop and discuss;
   reversing one requires a new superseding ADR, not a silent change.
+- `docs/REUNION.md` — the two-player finale: pairing, what crosses, hosting, the DLC gate.
 - `docs/ROADMAP.md` — current phase. Don't build ahead of the phase without being asked.
 - `.claude/skills/` — task-specific playbooks (DSL changes, Director prompts, canon,
   pixel art, asset studio, story bible, naming, dialogue/honorifics). Use them when the
@@ -57,6 +58,17 @@ encodes the project's invariants.
     included) must record via `recordUsage` in `packages/director/src/costs.ts`.
     A call missing from the ledger is a bug. Report: `npm run costs -w
     @howeverfar/director`.
+13. **Prose from a model is never game state.** The Improviser and the streaming
+    channel return narration only — no flags, items, doors, or quest progress. A
+    player must not be able to type their way into a state the engine did not
+    authorize; that is invariant 1 seen from the other side.
+14. **A solo path ends at a threshold; only the Reunion resolves** (STORY.md). The
+    Threshold Writer rejects an ending that resolves and the Reunion finale rejects
+    one that pays off only one side's seeds. Never soften either guard to make a
+    generation pass.
+15. **The Reunion gate checks both players (ADR-0024)** and fails closed when
+    unconfigured. `HOWEVERFAR_REUNION_UNLOCKED=1` is for development only and must
+    stay separate from "no secret configured".
 
 ## Model API usage (for Director code)
 

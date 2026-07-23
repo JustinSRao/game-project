@@ -189,13 +189,40 @@ Goal: both paths playable start → threshold ending, feeling like a real game.
       player is standing at a door waiting for. The always-playable invariant
       outranks the budget
 
-## Phase 7 — The Reunion (multiplayer "DLC", long-term)
+## Phase 7 — The Reunion (multiplayer "DLC")
 
-- [ ] Canon merge: two completed playthroughs (one per path) combine into one finale
-      context — the exportable-canon requirement from ADR-0012
-- [ ] Session pairing + realtime sync through `apps/server` (WebSocket); the Director
-      writes for two players in one world
-- [ ] The finale: reunion arc generated from both canons; the only true ending
+Goal: the game can be beaten. See **docs/REUNION.md** for the fiction and how to run one.
+
+- [x] Canon merge: `PlaythroughExport` — profile, arc, canon, characters, final sheet,
+      the path ending with its `reunionSeeds`, and the road as prose. Not the save file:
+      full AreaSpecs are tile grids the finale has no use for. Both sides' canon merges
+      **side-keyed and unreconciled** — two accounts of the same weeks from opposite
+      sides are supposed to disagree about what was visible, and flattening that would
+      erase what the finale exists to reassemble
+- [x] Pairing by mutual call (ADR-0023): both players give a name and an address for
+      themselves and for whoever they are reaching for; two calls pair when each names
+      the other's address, from opposite paths. Nobody is dragged across. In fiction
+      her side rings the bell toward a name and his writes a name back into the register
+      that erased her — the same four fields, because both gestures need them. A call
+      nobody answered waits and costs nothing
+- [x] Realtime sync through `apps/server` (WebSocket, `@fastify/websocket`): one socket
+      per player, the role stamped from the URL so neither can act as the other, turns
+      serialized per world so a shared dice counter stays meaningful and a once-only
+      interaction cannot fire twice. Self-hosted — one of the two players runs the server
+- [x] Two players, one world, **no second ruleset**: a player is projected into the
+      ordinary single-player shape, the existing engine decides, the result is merged
+      back. Position and sheet are private; the world is shared. The partner is injected
+      as a blocking entity, and stops blocking the moment their client drops
+- [x] The finale: a shared arc planned from both histories, areas that must need both of
+      them, and **the only ending in the game allowed to resolve**. Its guard is the
+      mirror of the Threshold Writer's — that one rejects an ending that resolves, this
+      one rejects an ending that pays off only one side's seeds
+- [x] Paid DLC (ADR-0024): offline HMAC licence keys bound to the buyer's email — the
+      address the Call already needed. Works with no internet and no service, mintable
+      by any storefront that can send a receipt, and **both** players are checked.
+      Fails closed when unconfigured. It is a receipt, not a lock, and says so
+- [ ] *Not decided:* which storefront takes the money. All of them deliver a key string,
+      so all of them fit; this is an owner call, not a code change
 
 ## Phase 8 — Platforms & distribution (long-term)
 
@@ -213,6 +240,11 @@ Goal: both paths playable start → threshold ending, feeling like a real game.
 - ~~Do the two paths share one engine ruleset with different emphasis, or grow
   path-specific rule modules?~~ **Answered: one ruleset (ADR-0021), for the Reunion's
   sake.**
-- Reunion matchmaking: how do two players find each other? (Friends-first? Codes?)
-- Multiplayer hosting under the zero-spend rule (self-hosted from the owner's machine?
-  free tiers?) — the hard open question of Phase 7.
+- ~~Reunion matchmaking: how do two players find each other?~~ **Answered: friends-first,
+  by mutual call on email addresses (ADR-0023).** No lobby, no accounts, no strangers.
+- ~~Multiplayer hosting under the zero-spend rule~~ **Answered: self-hosted (ADR-0023/0024).**
+  One of the two players runs the server; the guest's finished playthrough travels inside
+  their Call, so it does not matter which machine it was lived on. No service, so nothing
+  to pay for and nothing to keep running.
+- Does the Reunion need its own art pass? Both worlds' palettes meet in one area for the
+  first time (ADR-0020 built them as two separate tonal ramps).
