@@ -20,3 +20,15 @@ export {
   prepareArcForReplay,
   type ExportMeta,
 } from "./bundle.js";
+export {
+  assetDbRoot,
+  DuplicateAssetError,
+  getAssetRecord,
+  listAssets,
+  putAsset,
+  putBlob,
+  readBlob,
+  sha256OfBytes,
+  type AssetQuery,
+  type PutAssetInput,
+} from "./assets.js";
