@@ -45,3 +45,29 @@ export const CheckerVerdict = z.union([
   }),
 ]);
 export type CheckerVerdict = z.infer<typeof CheckerVerdict>;
+
+/**
+ * A character the player has met, remembered across the whole playthrough
+ * (Phase 6).
+ *
+ * This is what makes someone *recur* rather than be reinvented. The World
+ * Writer is handed the registry and must reuse a returning character's id,
+ * name and appearance verbatim; because the art request is derived from that
+ * frozen `appearance` string, the asset cache key is stable too — same
+ * character, same art, forever (pixel-art skill).
+ */
+export const CharacterRecord = z.object({
+  id: Slug,
+  name: z.string().min(1).max(80),
+  /**
+   * Canonical visual description, frozen at first appearance. Changing it
+   * would silently repaint a character the player already knows, so later
+   * areas describe what someone is *doing*, never what they look like.
+   */
+  appearance: z.string().min(1).max(500),
+  /** The kanji/trait link behind the name (ADR-0014). */
+  nameMeaning: z.string().min(1).max(300).optional(),
+  /** Where the player first met them. */
+  firstAreaId: Slug,
+});
+export type CharacterRecord = z.infer<typeof CharacterRecord>;

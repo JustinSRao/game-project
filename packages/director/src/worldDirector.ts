@@ -109,6 +109,7 @@ export class WorldDirector {
       areas: Object.fromEntries(areas.map((a) => [a.id, a])),
       signals: [],
       canon: [],
+      characters: {},
       spentUsd: 0,
       areasSinceBeatProgress: 0,
     };
@@ -233,6 +234,11 @@ export class WorldDirector {
           portal?.id,
         );
       }
+      case "moveTo": {
+        this.session.state = outcome.state;
+        this.touch();
+        return { kind: "ok", state: this.session.state };
+      }
       case "approach": {
         // The engine echoes the portal id back, so no narrowing on `action`.
         this.approach(outcome.portalId);
@@ -269,8 +275,9 @@ export class WorldDirector {
         case "freeText":
           return { kind: "freeText", text: action.text };
         case "approach":
-          // Not a play signal — walking near a door says nothing about the
-          // player, and recording it would skew the profile.
+        case "moveTo":
+          // Not play signals — where someone walked says nothing about them,
+          // and recording it would skew the profile.
           return undefined;
       }
     };
@@ -365,6 +372,26 @@ export class WorldDirector {
     return { kind: "threshold", summary: ending.threshold, ending };
   }
 
+  /**
+   * Remember everyone new in this area. First appearance wins: an existing
+   * record is never overwritten, because the appearance string is what the
+   * asset cache keys on — rewriting it would repaint a character the player
+   * already knows.
+   */
+  private registerCharacters(area: AreaSpec): void {
+    for (const entity of area.entities) {
+      if (entity.role !== "character") continue;
+      if (this.session.characters[entity.id]) continue;
+      this.session.characters[entity.id] = {
+        id: entity.id,
+        name: entity.name,
+        appearance: entity.description,
+        ...(entity.nameMeaning ? { nameMeaning: entity.nameMeaning } : {}),
+        firstAreaId: area.id,
+      };
+    }
+  }
+
   /** The crossing: read the player, load the rails, plan their side of the story. */
   private async commitPathChoice(path: Exclude<StoryPath, "shared">): Promise<void> {
     this.log(`path chosen: ${path} — profiling player and planning the arc`);
@@ -415,6 +442,7 @@ export class WorldDirector {
       arc: this.session.arc,
       facts: this.ledger.retrieve(focusEntities, DIRECTOR_CONFIG.retrievalLimit),
       state: this.session.state,
+      characters: Object.values(this.session.characters),
       recentAreas,
       hint,
       existingAreaIds: Object.keys(this.session.areas),
@@ -462,6 +490,7 @@ export class WorldDirector {
 
   private async acceptArea(area: AreaSpec, advancesBeatId?: string): Promise<void> {
     this.session.areas[area.id] = area;
+    this.registerCharacters(area);
 
     const newFacts = await extractAreaFacts(
       this.model,

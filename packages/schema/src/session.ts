@@ -4,7 +4,7 @@ import { Slug } from "./scene.js";
 import { AreaGameState, AreaSpec, StoryPath } from "./area.js";
 import { PlayerProfile, PlaySignal } from "./profile.js";
 import { StoryArc } from "./arc.js";
-import { CanonFact } from "./canon.js";
+import { CanonFact, CharacterRecord } from "./canon.js";
 
 /**
  * A resumable RPG play session (Area DSL v1, the pivot era). The text-era
@@ -28,6 +28,8 @@ export const AreaSessionSave = z.object({
    * What this playthrough has cost so far in USD (ADR-0018). Defaulted so
    * saves written before budgeting still load.
    */
+  /** Everyone the player has met, so they stay themselves when they return. */
+  characters: z.record(Slug, CharacterRecord).default({}),
   spentUsd: z.number().min(0).default(0),
   /** The authored finale, once the path reaches its threshold. */
   ending: ThresholdEnding.optional(),

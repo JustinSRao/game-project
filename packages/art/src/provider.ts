@@ -41,3 +41,25 @@ import type { RawImage } from "./image.js";
 export interface ImageProvider {
   generate(request: ArtRequest, style: StyleBible): Promise<RawImage>;
 }
+
+/**
+ * Build the art request for a recurring character (Phase 6).
+ *
+ * Deliberately a pure function of the character's frozen `appearance`: the
+ * asset cache keys on the request, so as long as the registry entry does not
+ * change, the same character resolves to byte-identical art every time they
+ * walk on screen. Passing anything volatile here (mood of the scene, what
+ * they are doing today) would silently repaint them.
+ */
+export function characterArtRequest(character: {
+  name: string;
+  appearance: string;
+}): { kind: "portrait"; subject: string; mood: string; sizeClass: "medium" } {
+  return {
+    kind: "portrait",
+    subject: `${character.name}: ${character.appearance}`,
+    // Constant on purpose — see above.
+    mood: "neutral, canonical reference",
+    sizeClass: "medium",
+  };
+}

@@ -181,5 +181,12 @@ export const AreaAction = z.discriminatedUnion("type", [
    * (Phase 6 latency). Safe to ignore, safe to send more than once.
    */
   z.object({ type: z.literal("approach"), portalId: Slug }),
+  /**
+   * Where the player walked to. Movement is applied client-side for
+   * responsiveness, so the authoritative session needs telling — without this
+   * the server still believes the player is standing on the area's spawn, and
+   * every portal refuses to open.
+   */
+  z.object({ type: z.literal("moveTo"), pos: GridPos }),
 ]);
 export type AreaAction = z.infer<typeof AreaAction>;

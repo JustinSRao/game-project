@@ -202,9 +202,32 @@ export class PlayScene extends Phaser.Scene {
     );
   }
 
-  /** Mirror an action to the authoritative server session; local play already applied it. */
+  /** Last position the server was told about, so we only sync when it changed. */
+  private syncedPos: { x: number; y: number } | undefined;
+
+  /**
+   * Mirror an action to the authoritative server session; local play already
+   * applied it.
+   *
+   * Movement runs client-side for responsiveness, so the server is told where
+   * the player ended up BEFORE any action whose legality depends on standing
+   * somewhere — otherwise the server still thinks they are on the area's spawn
+   * and every portal refuses to open.
+   */
   private mirror(action: Parameters<typeof sendAction>[1]): void {
     if (this.session.mode !== "server") return;
+    const pos = this.world?.state.pos;
+    if (
+      pos &&
+      action.type !== "moveTo" &&
+      (this.syncedPos?.x !== pos.x || this.syncedPos?.y !== pos.y)
+    ) {
+      this.syncedPos = { ...pos };
+      void sendAction(this.session, { type: "moveTo", pos: { ...pos } }).catch(() => {
+        // Let the real action try anyway; a stale position fails loudly there.
+        this.syncedPos = undefined;
+      });
+    }
     void sendAction(this.session, action).catch(() => {
       // The optimistic local engine result stands; signals catch up next action.
     });
@@ -351,6 +374,8 @@ export class PlayScene extends Phaser.Scene {
   private buildArea(): void {
     if (!this.world) return;
     this.announced.clear();
+    // A new area re-spawns the player on both sides; nothing to sync yet.
+    this.syncedPos = undefined;
     const area = this.world.area;
     this.mapLayer?.destroy();
     this.entityLayer?.destroy();

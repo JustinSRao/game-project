@@ -3,6 +3,7 @@ import { AreaSpec, type AreaGameState } from "@howeverfar/schema";
 import {
   applyAreaAction,
   applyConvoChoice,
+  canWalkTo,
   EngineError,
   enterArea,
   initialAreaState,
@@ -256,5 +257,74 @@ describe("validateAreaIntegrity", () => {
     };
     const problems = validateAreaIntegrity(broken);
     expect(problems.some((p) => p.includes('"nobody"'))).toBe(true);
+  });
+});
+
+describe("moveTo — the authoritative position sync", () => {
+  const spec = AreaSpec.parse({
+    dslVersion: 1,
+    id: "yard",
+    name: "Yard",
+    description: "A walled yard with a gate.",
+    path: "shared",
+    width: 5,
+    height: 5,
+    tiles: [
+      { id: "wall", name: "wall", walkable: false, color: "#332f45" },
+      { id: "floor", name: "floor", walkable: true, color: "#97a1b3" },
+    ],
+    ground: [
+      [0, 0, 0, 0, 0],
+      [0, 1, 1, 1, 0],
+      [0, 1, 0, 1, 0],
+      [0, 1, 1, 1, 0],
+      [0, 0, 0, 0, 0],
+    ],
+    playerSpawn: { x: 1, y: 1 },
+    entities: [],
+    portals: [
+      { id: "gate", pos: { x: 3, y: 3 }, label: "gate", transition: { type: "generate", hint: "out" } },
+    ],
+  });
+
+  it("accepts a destination the player could have walked to", () => {
+    const state = initialAreaState(spec);
+    expect(canWalkTo(state, spec, { x: 3, y: 3 })).toBe(true);
+    const outcome = applyAreaAction(state, spec, { type: "moveTo", pos: { x: 3, y: 3 } });
+    expect(outcome.kind).toBe("moveTo");
+    if (outcome.kind === "moveTo") expect(outcome.state.pos).toEqual({ x: 3, y: 3 });
+  });
+
+  it("refuses a destination inside a wall", () => {
+    const state = initialAreaState(spec);
+    expect(canWalkTo(state, spec, { x: 2, y: 2 })).toBe(false);
+    expect(() =>
+      applyAreaAction(state, spec, { type: "moveTo", pos: { x: 2, y: 2 } }),
+    ).toThrow(/cannot walk/);
+  });
+
+  it("refuses a walkable tile with no walkable route to it", () => {
+    const sealed = AreaSpec.parse({
+      ...spec,
+      id: "sealed",
+      ground: [
+        [0, 0, 0, 0, 0],
+        [0, 1, 0, 1, 0],
+        [0, 0, 0, 0, 0],
+        [0, 1, 0, 1, 0],
+        [0, 0, 0, 0, 0],
+      ],
+      portals: [
+        { id: "gate", pos: { x: 1, y: 1 }, label: "gate", transition: { type: "generate", hint: "out" } },
+      ],
+    });
+    const state = initialAreaState(sealed);
+    // (3,3) is walkable but walled off from the spawn — a teleport, not a walk.
+    expect(canWalkTo(state, sealed, { x: 3, y: 3 })).toBe(false);
+  });
+
+  it("lets the player stay where they are", () => {
+    const state = initialAreaState(spec);
+    expect(canWalkTo(state, spec, state.pos)).toBe(true);
   });
 });

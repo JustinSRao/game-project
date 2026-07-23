@@ -2,6 +2,7 @@ import type {
   AreaGameState,
   AreaSpec,
   CanonFact,
+  CharacterRecord,
   PlayerProfile,
   StoryArc,
   StoryPath,
@@ -19,6 +20,7 @@ const AREA_GUIDE = `You author walkable top-down areas as JSON matching the prov
 - Walkability is gameplay: build real spaces (streets, rooms, clearings) with unwalkable edges/obstacles shaping movement, not open featureless rectangles. playerSpawn must be on a walkable, unblocked tile.
 - Tile "color" and entity "color" are placeholder pixels until real art binds: choose muted, cohesive lowercase "#rrggbb" values that fit the area's mood. "artTag" names the kind of asset that will bind later ("town-roof", "castle-wall").
 - Entities: characters and props block movement; items do not. Position them where the fiction says. Every interactive entity gets ONE interaction (verb talk/examine/use/take): lines (speakerId must be "narrator" or an entity id present in THIS area), then optionally 2-4 choices with replies. Items use verb "take" with once:true and an addItem effect.
+- RECURRING CHARACTERS (hard rule): you are given everyone the player has already met. If one of them appears in this area, reuse their "id", their "name", and their "description" VERBATIM — the description is their canonical look and the art is cached from it, so changing a word repaints someone the player already knows. Say what they are doing now in dialogue and in the area description, never by re-describing their face or clothes. Only invent a character who is genuinely new.
 - NAMES (hard rule): every newly introduced human character has a full Japanese name — given name AND real family name — whose kanji meanings connect to their personality (the given name their nature, the family name their circumstance or fate). Set "nameMeaning" to the kanji, readings, and trait links (e.g. "遠山 鈴音 (Suzune Toyama) — 'distant mountain' + 'bell-sound'"). Pets, animals, spirits, and creatures are exempt (no family name; epithets allowed for surname-less fantasy cultures). Ironic names must be intentional. Never reuse a reading.
 - ADDRESS & HONORIFICS: dialogue keeps Japanese honorifics with correct usage — family name + -san as the polite default between non-close people; -kun (male peers/juniors), -chan (children, close female friends, pets), -senpai/-sensei (roles), -sama (royalty/deference, common at the fantasy court), -dono (archaic/knightly); bare given name ONLY for family, lovers, and close friends. How characters address each other is relationship information — a shift to bare name is an intimacy milestone, never casual. When unsure, use -san or avoid direct address.
 - Portals (1-8): where leaving leads. Most carry {"type":"generate","hint":"..."} — the hint is your note to the NEXT author about where this leads and what it should pay off. Use {"type":"area","areaId":...} only for areas that already exist. {"type":"ending",...} only when instructed the final act allows it.
@@ -45,6 +47,16 @@ ${AREA_GUIDE}
 ${AUTHOR_PRINCIPLES}
 
 Output: an object {"area": <AreaSpec>, "advancesBeatId": <beat id or omit>}. Set advancesBeatId when this area's content completes one of the current act's beats.`;
+
+function charactersBlock(characters: readonly CharacterRecord[] | undefined): string {
+  if (!characters || characters.length === 0) return "(nobody yet)";
+  return characters
+    .map(
+      (c) =>
+        `- [${c.id}] ${c.name} — ${c.appearance}${c.nameMeaning ? ` (${c.nameMeaning})` : ""}`,
+    )
+    .join("\n");
+}
 
 function factsBlock(facts: readonly CanonFact[]): string {
   if (facts.length === 0) return "(no facts established yet)";
@@ -101,6 +113,8 @@ function areaStateSummary(state: AreaGameState): string {
 }
 
 export interface WorldWriterContext {
+  /** Everyone the player has met, so returning characters stay themselves. */
+  characters?: readonly CharacterRecord[];
   path: Exclude<StoryPath, "shared">;
   profile: PlayerProfile;
   arc: StoryArc;
@@ -121,6 +135,7 @@ export function buildWorldWriterUser(ctx: WorldWriterContext): string {
     `## Player profile\n${profileBlock(ctx.profile)}`,
     `## Story arc\n${arcBlock(ctx.arc)}`,
     `## Established facts (do not contradict)\n${factsBlock(ctx.facts)}`,
+    `## Characters already met (reuse id, name and description verbatim)\n${charactersBlock(ctx.characters)}`,
     `## Recent areas\n${recent || "(none)"}`,
     `## Mechanical state\n${areaStateSummary(ctx.state)}`,
     `## Already-used area ids (yours must be new)\n${ctx.existingAreaIds.join(", ")}`,

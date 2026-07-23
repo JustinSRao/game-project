@@ -142,8 +142,12 @@ Goal: both paths playable start → threshold ending, feeling like a real game.
       before rewards so a reward looping back to its own quest terminates. Integrity
       validation catches quest references anywhere in an area, including inside check
       branches. Quest log in the client HUD
-- [ ] Recurring characters: canonical visual descriptions in canon → stable art via the
-      asset DB; companions/antagonists that persist and develop across the playthrough
+- [x] Recurring characters: a session-level registry records everyone met, with their
+      appearance **frozen at first sighting** — later areas are handed the registry and
+      must reuse id, name and description verbatim. Because `characterArtRequest` is a
+      pure function of that frozen string, the asset cache key is stable: same
+      character, same art, forever. First appearance always wins, so no later area can
+      silently repaint someone the player already knows
 - [~] Latency: **speculative generation done** — the client announces when the player
       walks within 4 tiles of a generate-portal (`approach` action), and the Director
       starts writing what is beyond it; stepping through reuses the work instead of

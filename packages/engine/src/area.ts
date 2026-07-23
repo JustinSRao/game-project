@@ -339,12 +339,48 @@ export function takePortal(
   return { state, transition: portal.transition };
 }
 
+/**
+ * Can the player walk from where they are to `target` without leaving
+ * walkable, unblocked ground? Breadth-first over the grid.
+ *
+ * The server validates the destination this way rather than trusting the
+ * client's position outright: a desynced or tampered client can still only
+ * claim somewhere it could actually have walked to.
+ */
+export function canWalkTo(
+  state: AreaGameState,
+  area: AreaSpec,
+  target: GridPos,
+): boolean {
+  if (state.pos.x === target.x && state.pos.y === target.y) return true;
+  if (!isWalkable(area, target.x, target.y)) return false;
+
+  const seen = new Set<number>([state.pos.y * area.width + state.pos.x]);
+  const queue: GridPos[] = [state.pos];
+  while (queue.length > 0) {
+    const at = queue.shift() as GridPos;
+    for (const dir of ["up", "down", "left", "right"] as const) {
+      const { dx, dy } = DELTA[dir];
+      const x = at.x + dx;
+      const y = at.y + dy;
+      if (!isWalkable(area, x, y)) continue;
+      const key = y * area.width + x;
+      if (seen.has(key)) continue;
+      if (x === target.x && y === target.y) return true;
+      seen.add(key);
+      queue.push({ x, y });
+    }
+  }
+  return false;
+}
+
 export type AreaActionOutcome =
   | { kind: "interaction"; outcome: InteractionOutcome }
   | { kind: "convo"; outcome: ConvoChoiceOutcome }
   | { kind: "portal"; outcome: PortalOutcome }
   | { kind: "freeText"; state: AreaGameState; text: string }
-  | { kind: "approach"; state: AreaGameState; portalId: string };
+  | { kind: "approach"; state: AreaGameState; portalId: string }
+  | { kind: "moveTo"; state: AreaGameState };
 
 /** Uniform entry point mirroring the v0 engine's applyAction. */
 export function applyAreaAction(
@@ -367,6 +403,14 @@ export function applyAreaAction(
     case "approach": {
       // Purely advisory: it changes nothing, so an unknown portal is harmless.
       return { kind: "approach", state, portalId: action.portalId };
+    }
+    case "moveTo": {
+      if (!canWalkTo(state, area, action.pos)) {
+        throw new EngineError(
+          `player cannot walk from (${state.pos.x}, ${state.pos.y}) to (${action.pos.x}, ${action.pos.y}) in area "${area.id}"`,
+        );
+      }
+      return { kind: "moveTo", state: { ...state, pos: { ...action.pos } } };
     }
   }
 }
