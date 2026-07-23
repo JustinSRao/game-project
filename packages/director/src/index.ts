@@ -1,5 +1,6 @@
 export {
   DIRECTOR_CONFIG,
+  IMAGE_MODEL,
   OPENAI_MODELS,
   type Effort,
   type RoleConfig,
@@ -31,6 +32,7 @@ export { CanonLedger } from "./canonLedger.js";
 export {
   computeCostUsd,
   costLedgerPath,
+  IMAGE_PRICING,
   PRICING,
   readCostLedger,
   recordUsage,
@@ -39,6 +41,12 @@ export {
   type TokenUsage,
   type UsageEvent,
 } from "./costs.js";
+export {
+  buildImagePrompt,
+  GptImageProvider,
+  ImageGenerationError,
+  type ImagesApi,
+} from "./imageProvider.js";
 export { Director, type DirectorOptions, type TurnResult } from "./director.js";
 export { writeScene, WriterOutput, WriterFailedError } from "./writer.js";
 export {

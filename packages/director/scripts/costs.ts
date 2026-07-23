@@ -26,7 +26,12 @@ console.log(
     (s.unpricedCalls > 0 ? ` · ${s.unpricedCalls} calls with no price entry` : ""),
 );
 console.log(
-  `tokens: ${s.tokens.input.toLocaleString()} input · ${s.tokens.cachedInput.toLocaleString()} cached-read · ${s.tokens.cacheWrite.toLocaleString()} cache-write · ${s.tokens.output.toLocaleString()} output\n`,
+  `tokens: ${s.tokens.input.toLocaleString()} input · ${s.tokens.cachedInput.toLocaleString()} cached-read · ${s.tokens.cacheWrite.toLocaleString()} cache-write · ${s.tokens.output.toLocaleString()} output`,
+);
+console.log(
+  s.images > 0
+    ? `images: ${s.images.toLocaleString()} generated (per-image price is UNVERIFIED — see IMAGE_PRICING in costs.ts)\n`
+    : "",
 );
 
 table("by model", s.byModel);
@@ -48,16 +53,18 @@ function summarize(all: UsageEvent[]) {
     recordedUsd: 0,
     recomputedUsd: 0,
     unpricedCalls: 0,
+    images: 0,
     tokens: { input: 0, cachedInput: 0, cacheWrite: 0, output: 0 },
     byModel: {} as Record<string, { calls: number; usd: number }>,
     byRole: {} as Record<string, { calls: number; usd: number }>,
     byDay: {} as Record<string, { calls: number; usd: number }>,
   };
   for (const e of all) {
-    const recomputed = computeCostUsd(e.model, e) ?? e.costUsd ?? 0;
+    const recomputed = computeCostUsd(e.model, e, e.images) ?? e.costUsd ?? 0;
     acc.recordedUsd += e.costUsd ?? 0;
     acc.recomputedUsd += recomputed;
     if (e.costUsd == null) acc.unpricedCalls++;
+    acc.images += e.images ?? 0;
     acc.tokens.input += e.inputTokens;
     acc.tokens.cachedInput += e.cachedInputTokens;
     acc.tokens.cacheWrite += e.cacheWriteTokens;

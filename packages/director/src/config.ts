@@ -88,3 +88,10 @@ export const OPENAI_MODELS: Record<Tier, string> = {
   // strong-tier regeneration), so accuracy here pays for itself.
   cheap: process.env["HOWEVERFAR_OPENAI_MODEL_CHEAP"] ?? "gpt-5.4-mini",
 };
+
+/**
+ * Image model for hero assets (ADR-0011 source #3). Same rule as the text
+ * models: the id lives here, never scattered through call sites, and it is
+ * env-overridable because account access varies.
+ */
+export const IMAGE_MODEL = process.env["HOWEVERFAR_IMAGE_MODEL"] ?? "gpt-image-2";

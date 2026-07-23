@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.3",
+    "@howeverfar/art": "*",
     "@howeverfar/content": "*",
     "@howeverfar/engine": "*",
     "@howeverfar/schema": "*",

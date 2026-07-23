@@ -34,6 +34,18 @@ export const PRICING: Readonly<Record<string, PriceEntry>> = {
   "claude-haiku-4-5": { inputPerM: 1.0, cachedInputPerM: 0.1, outputPerM: 5.0, cacheWritePerM: 1.25 },
 };
 
+/**
+ * Image models are priced per image, not per token. UNVERIFIED as of
+ * 2026-07-22 — gpt-image-2's published price has not been checked against the
+ * pricing page the way PRICING above was, so treat these as a placeholder for
+ * budgeting only. Override without a code change via
+ * HOWEVERFAR_IMAGE_PRICE_USD, and correct the table once the real number is
+ * confirmed; image counts in the ledger are ground truth either way.
+ */
+export const IMAGE_PRICING: Readonly<Record<string, number>> = {
+  "gpt-image-2": Number(process.env["HOWEVERFAR_IMAGE_PRICE_USD"] ?? 0.04),
+};
+
 export interface TokenUsage {
   /** Uncached input tokens billed at the full input rate. */
   inputTokens: number;
@@ -44,8 +56,21 @@ export interface TokenUsage {
   outputTokens: number;
 }
 
-/** Derived dollar cost, or null when the model has no PRICING entry. */
-export function computeCostUsd(model: string, usage: TokenUsage): number | null {
+/**
+ * Derived dollar cost, or null when the model has no pricing entry. Image
+ * calls price per image (plus any tokens the request itself billed); text
+ * calls price per token.
+ */
+export function computeCostUsd(
+  model: string,
+  usage: TokenUsage,
+  images?: number,
+): number | null {
+  if (images !== undefined) {
+    const perImage = IMAGE_PRICING[model];
+    if (perImage === undefined) return null;
+    return perImage * images + (computeCostUsd(model, usage) ?? 0);
+  }
   const price = PRICING[model];
   if (!price) return null;
   const perToken =
@@ -62,7 +87,7 @@ export interface UsageEvent extends TokenUsage {
   model: string;
   /** Director role that made the call ("writer", "checker", ...) if known. */
   role?: string;
-  /** "text" today; "image" when the gpt-image provider lands (Phase 5). */
+  /** "text" for model calls; "image" for the gpt-image-2 provider (Phase 5). */
   kind: "text" | "image";
   /** Image calls: number of images generated. */
   images?: number;
@@ -83,7 +108,7 @@ export function recordUsage(event: Omit<UsageEvent, "ts" | "costUsd">): void {
     const full: UsageEvent = {
       ...event,
       ts: new Date().toISOString(),
-      costUsd: computeCostUsd(event.model, event),
+      costUsd: computeCostUsd(event.model, event, event.images),
     };
     mkdirSync(ledgerDir(), { recursive: true });
     appendFileSync(costLedgerPath(), `${JSON.stringify(full)}\n`, "utf8");

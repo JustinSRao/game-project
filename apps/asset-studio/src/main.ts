@@ -17,6 +17,8 @@ import {
   readBlob,
   type AssetQuery,
 } from "@howeverfar/library";
+import { ArtRequest } from "@howeverfar/schema";
+import { costLedgerPath, IMAGE_MODEL } from "@howeverfar/director";
 import { ASSET_KINDS, validateAsset, validateFrameSet, type AssetKind, type Finding } from "./checks.js";
 import { parseSource, parseTags, slugifyName, stringFlag, type Flags } from "./cliHelpers.js";
 
@@ -36,6 +38,9 @@ import { parseSource, parseTags, slugifyName, stringFlag, type Flags } from "./c
  *                          [--db <dir>] [--json]
  *   asset-studio preview   <name-or-id...> [--kind k] [--path p] [--tag t] [--all]
  *                          --out <dir> [--scale 8] [--db <dir>] [--json]
+ *   asset-studio generate  --subject "..." --mood "..." --style <bible.json>
+ *                          --kind <kind> --path <p> [--size small|medium|large]
+ *                          [--import] [--out <dir>] [--yes] [--db <dir>] [--json]
  *
  * `normalize` runs the mandatory processArt pipeline (pixelize → quantize →
  * outline); `validate` checks gate-readiness; `import` runs normalize +
@@ -113,7 +118,11 @@ usage:
                                         [--import] [--out <dir>] [--emitted-by <who>] [--json]
   asset-studio catalog   [--kind k] [--path p] [--tag t] [--name n] [--source type] [--db <dir>] [--json]
   asset-studio preview   [<name-or-id>...] [--kind k] [--path p] [--tag t] [--all]
-                                        --out <dir> [--scale <n>] [--db <dir>] [--json]`);
+                                        --out <dir> [--scale <n>] [--db <dir>] [--json]
+  asset-studio generate  --subject "..." --mood "..." --style <bible.json> --kind <kind>
+                                        --path <p> [--size small|medium|large] [--name <slug>]
+                                        [--tags a,b] [--import] [--out <dir>] [--yes]
+                                        [--db <dir>] [--json]     (COSTS MONEY — needs --yes)`);
   process.exit(2);
 }
 
@@ -395,6 +404,70 @@ async function cmdPreview(cli: Cli, json: boolean): Promise<never> {
   return report(reports, json);
 }
 
+/**
+ * gpt-image-2 generation (ADR-0011 source #3). This is the one command that
+ * spends the owner's OpenAI budget, so it refuses to run without --yes and
+ * prints what it will cost the ledger. Everything downstream is the same
+ * gate every other source passes.
+ */
+async function cmdGenerate(cli: Cli, json: boolean): Promise<never> {
+  const style = await loadStyle(cli.flags);
+  const kind = parseKind(cli.flags);
+  const subject = stringFlag(cli.flags, "subject");
+  const mood = stringFlag(cli.flags, "mood");
+  if (!subject || !mood) usage("generate needs --subject and --mood");
+  const doImport = cli.flags.get("import") === true;
+  const out = stringFlag(cli.flags, "out");
+  if (!doImport && !out) usage("generate needs --import and/or --out <dir>");
+  const path = doImport ? parsePath(cli.flags) : undefined;
+  if (cli.flags.get("yes") !== true) {
+    usage(
+      `generate calls ${IMAGE_MODEL} and spends real money from the owner's OpenAI budget — pass --yes to confirm`,
+    );
+  }
+
+  const request = ArtRequest.parse({
+    kind: kind === "tile" ? "background" : kind,
+    subject,
+    mood,
+    sizeClass: stringFlag(cli.flags, "size") ?? "medium",
+  });
+
+  const { GptImageProvider } = await import("@howeverfar/director");
+  const raw = await new GptImageProvider().generate(request, style);
+  const gated = processArt(raw, style);
+  const findings = validateAsset(gated, style, kind);
+  const name = stringFlag(cli.flags, "name") ?? slugifyName(subject).slice(0, 40);
+  const entry: FileReport = { file: `${IMAGE_MODEL}: ${subject} (${name})`, findings };
+
+  if (out) {
+    await mkdir(out, { recursive: true });
+    const outFile = join(out, `${name}.png`);
+    await writeFile(outFile, encodePng(gated));
+    entry.outFile = outFile;
+  }
+
+  const stored: AssetRecord[] = [];
+  if (!findings.some((f) => f.level === "error") && doImport && path) {
+    const { record } = putAsset(
+      {
+        name,
+        kind,
+        path,
+        styleName: style.paletteName,
+        tags: parseTags(cli.flags),
+        frames: [encodePng(gated)],
+        source: { type: "generated", model: IMAGE_MODEL },
+        replace: cli.flags.get("replace") === true,
+      },
+      dbRoot(cli.flags),
+    );
+    stored.push(record);
+    entry.assetId = record.id;
+  }
+  return report([entry], json, { stored, costLedger: costLedgerPath() });
+}
+
 async function main(): Promise<void> {
   const cli = parseArgs(process.argv.slice(2));
   const json = cli.flags.get("json") === true;
@@ -414,6 +487,8 @@ async function main(): Promise<void> {
       return cmdCatalog(cli, json);
     case "preview":
       return await cmdPreview(cli, json);
+    case "generate":
+      return await cmdGenerate(cli, json);
     default:
       usage(`unknown command "${cli.command}"`);
   }
