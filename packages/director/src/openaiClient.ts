@@ -1,7 +1,12 @@
 import OpenAI from "openai";
 import { OPENAI_MODELS, type RoleConfig } from "./config.js";
 import { recordUsage, roleNameOf } from "./costs.js";
-import { ModelOutputError, type ModelClient, type StructuredRequest } from "./modelClient.js";
+import {
+  ModelOutputError,
+  type ModelClient,
+  type StructuredRequest,
+  type TextRequest,
+} from "./modelClient.js";
 import { stripNulls, toOpenAISchema, unwrapRoot } from "./openaiSchema.js";
 
 /**
@@ -89,6 +94,41 @@ export class OpenAIModelClient implements ModelClient {
     // does — the retry loop's guarantees depend on this, not on the provider.
     const parsed = stripNulls(unwrapRoot(raw, wrapped));
     return req.schema.parse(parsed);
+  }
+
+  async *streamText(req: TextRequest): AsyncIterable<string> {
+    const stream = await this.client.chat.completions.create({
+      model: OPENAI_MODELS[req.role.tier],
+      max_completion_tokens: req.role.maxTokens,
+      reasoning_effort: reasoningEffort(req.role),
+      messages: [
+        { role: "system", content: req.system },
+        { role: "user", content: req.user },
+      ],
+      stream: true,
+      // Without this the usage totals never arrive and the call would be
+      // missing from the ledger (ADR-0018) — a bug, not an omission.
+      stream_options: { include_usage: true },
+    });
+
+    let usage: OpenAI.CompletionUsage | undefined;
+    for await (const part of stream) {
+      if (part.usage) usage = part.usage;
+      const delta = part.choices[0]?.delta.content;
+      if (delta) yield delta;
+    }
+
+    const cached = usage?.prompt_tokens_details?.cached_tokens ?? 0;
+    recordUsage({
+      provider: "openai",
+      model: OPENAI_MODELS[req.role.tier],
+      role: roleNameOf(req.role),
+      kind: "text",
+      inputTokens: Math.max(0, (usage?.prompt_tokens ?? 0) - cached),
+      cachedInputTokens: cached,
+      cacheWriteTokens: 0,
+      outputTokens: usage?.completion_tokens ?? 0,
+    });
   }
 }
 

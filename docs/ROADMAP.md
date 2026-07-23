@@ -148,14 +148,26 @@ Goal: both paths playable start → threshold ending, feeling like a real game.
       pure function of that frozen string, the asset cache key is stable: same
       character, same art, forever. First appearance always wins, so no later area can
       silently repaint someone the player already knows
-- [~] Latency: **speculative generation done** — the client announces when the player
+- [x] Latency: **speculative generation** — the client announces when the player
       walks within 4 tiles of a generate-portal (`approach` action), and the Director
       starts writing what is beyond it; stepping through reuses the work instead of
       waiting. Approach-triggered rather than speculate-every-portal because every
       unused speculation is money spent on an area nobody reads (ADR-0013); capped per
       session via `HOWEVERFAR_MAX_SPECULATIONS`, asked once per door, never during the
       prologue, and never recorded as a play signal. Failed speculations fall back to
-      writing for real. *Remaining: streamed dialogue and in-fiction masking*
+      writing for real. **Streaming + in-fiction masking (ADR-0022):** a streaming twin
+      of the action route emits `stage` events as the Director works and `chunk` events
+      for prose as it is written, and the client covers the wait with the
+      **Interstitial** — hand-authored per-path passages shown a line at a time, picked
+      from the door being opened so the same door always opens with the same words. No
+      spinner exists anywhere in the game. `streamText` is optional on `ModelClient`
+      with a structured-call fallback, so nothing branches on provider support
+- [x] **The Improviser:** free text is answered at last. After the crossing, typing
+      something gets narration written for it, streamed as it arrives. Hard boundary:
+      it returns **narration, never data** — no flags, items, doors, or quest progress,
+      so a player cannot type their way into a state the engine did not authorize
+      (ADR-0001). The prologue keeps its fixed acknowledgement: that evening is
+      hand-authored and stays exactly as written
 - [x] **Path B meta-effects (`metaFx`, ADR-0015):** a CLOSED four-effect vocabulary —
       `forgetName` (a character's name renders as static everywhere), `renameArea`,
       `relabelSave` (the save list itself lies), `hudWhisper`. **The engine enforces

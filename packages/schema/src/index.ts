@@ -8,3 +8,4 @@ export * from "./canon.js";
 export * from "./bundle.js";
 export * from "./mechanics.js";
 export * from "./asset.js";
+export * from "./stream.js";

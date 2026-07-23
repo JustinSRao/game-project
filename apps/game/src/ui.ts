@@ -24,7 +24,7 @@ const sayInput = document.getElementById("say-input") as HTMLInputElement;
 
 export type PanelState =
   | { mode: "closed" }
-  | { mode: "narration"; text: string }
+  | { mode: "narration"; text: string; streaming?: boolean }
   | {
       mode: "dialogue";
       lines: DialogueLine[];
@@ -93,8 +93,9 @@ function render(): void {
   };
 
   if (state.mode === "narration") {
-    add("line", state.text);
-    add("hint", "space · continue");
+    const line = add("line", state.text);
+    if (state.streaming) line.classList.add("streaming");
+    add("hint", state.streaming ? "" : "space · continue");
     return;
   }
   if (state.mode === "reply") {
@@ -159,6 +160,34 @@ function render(): void {
 }
 
 export function showNarration(text: string): void {
+  state = { mode: "narration", text };
+  render();
+}
+
+/**
+ * Open an empty narration panel that fills in as the Director writes it
+ * (Phase 6). While it is streaming there is no "space · continue" hint,
+ * because there is nothing yet to continue past.
+ */
+export function beginStreamingNarration(): void {
+  state = { mode: "narration", text: "", streaming: true };
+  render();
+}
+
+export function appendNarration(chunk: string): void {
+  if (state.mode !== "narration") beginStreamingNarration();
+  if (state.mode !== "narration") return;
+  state = { ...state, text: state.text + chunk };
+  render();
+}
+
+/** Stop the cursor blinking: what is on screen is the whole thing. */
+export function endStreamingNarration(fallback?: string): void {
+  if (state.mode !== "narration") {
+    if (fallback) showNarration(fallback);
+    return;
+  }
+  const text = state.text.trim().length > 0 ? state.text : (fallback ?? "");
   state = { mode: "narration", text };
   render();
 }
@@ -345,6 +374,13 @@ export function showMenu(
 }
 
 export function showVeil(title: string, body: string, hint: string): void {
+  // Any deliberate veil replaces a running interstitial — otherwise its next
+  // tick would paint over whatever the caller just put up.
+  stopInterstitial();
+  paintVeil(title, body, hint);
+}
+
+function paintVeil(title: string, body: string, hint: string): void {
   veil.classList.add("open");
   veil.innerHTML = "";
   const inner = document.createElement("div");
@@ -360,7 +396,44 @@ export function showVeil(title: string, body: string, hint: string): void {
   veil.appendChild(inner);
 }
 
+/**
+ * The Interstitial (Phase 6): hand-authored lines from `@howeverfar/content`
+ * shown one at a time while the Director writes, so the wait reads as a moment
+ * in the story rather than as a loading screen. Never a spinner, never a
+ * percentage — the game does not admit there is a machine behind it.
+ *
+ * The lines loop, so a wait longer than the passage is still covered.
+ */
+const INTERSTITIAL_MS = 6500;
+let interstitialTimer: ReturnType<typeof setInterval> | undefined;
+
+export function showInterstitial(
+  title: string,
+  lines: readonly string[],
+  startIndex = 0,
+): void {
+  stopInterstitial();
+  if (lines.length === 0) return;
+  let index = startIndex % lines.length;
+
+  const paint = (): void => {
+    paintVeil(title, lines[index] ?? "", "");
+    veil.querySelector("p")?.classList.add("arriving");
+  };
+  paint();
+  interstitialTimer = setInterval(() => {
+    index = (index + 1) % lines.length;
+    paint();
+  }, INTERSTITIAL_MS);
+}
+
+export function stopInterstitial(): void {
+  if (interstitialTimer !== undefined) clearInterval(interstitialTimer);
+  interstitialTimer = undefined;
+}
+
 export function hideVeil(): void {
+  stopInterstitial();
   veil.classList.remove("open");
 }
 

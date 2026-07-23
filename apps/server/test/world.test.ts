@@ -161,6 +161,94 @@ describe("world session routes", () => {
     await app2.close();
   });
 
+  it("streams a turn as stage events followed by one result", async () => {
+    const model = new FakeModelClient();
+    const app = buildServer({ model });
+    const created = await app.inject({
+      method: "POST",
+      url: "/api/world-sessions",
+      payload: { mode: "new" },
+    });
+    const { sessionId } = created.json() as { sessionId: string };
+
+    const { loadWorldSession, saveWorldSession } = await import("@howeverfar/library");
+    const save = loadWorldSession(sessionId);
+    save.state.currentAreaId = "prologue-crossing";
+    save.state.pos = { x: 1, y: 3 };
+    save.state.visitedAreaIds = ["prologue-street", "prologue-crossing"];
+    saveWorldSession(save);
+
+    model.push(makeProfile());
+    model.push(makeArc());
+    model.push(makeGeneratedArea("bell-tower"));
+    model.push({ ok: true });
+    model.push({ facts: [] });
+
+    const app2 = buildServer({ model });
+    const res = await app2.inject({
+      method: "POST",
+      url: `/api/world-sessions/${sessionId}/action/stream`,
+      payload: { type: "portal", portalId: "choose-her-path" },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers["content-type"]).toContain("text/event-stream");
+
+    const events = res.body
+      .split("\n\n")
+      .filter((frame) => frame.startsWith("data:"))
+      .map((frame) => JSON.parse(frame.slice(5)) as { type: string; stage?: string });
+
+    // The crossing does all three: reads the player, plans, then writes.
+    expect(events.filter((e) => e.type === "stage").map((e) => e.stage)).toEqual([
+      "profiling",
+      "planning",
+      "writing",
+      "arriving",
+    ]);
+    const terminal = events.at(-1) as { type: string; result: { kind: string } };
+    expect(terminal.type).toBe("result");
+    expect(terminal.result.kind).toBe("area");
+    await app.close();
+    await app2.close();
+  });
+
+  it("answers free text with written prose once the path is chosen", async () => {
+    const model = new FakeModelClient();
+    const app = buildServer({ model });
+    const created = await app.inject({
+      method: "POST",
+      url: "/api/world-sessions",
+      payload: { mode: "new" },
+    });
+    const { sessionId } = created.json() as { sessionId: string };
+
+    const { loadWorldSession, saveWorldSession } = await import("@howeverfar/library");
+    const save = loadWorldSession(sessionId);
+    const area = makeGeneratedArea("moon-shrine") as { area: { id: string } };
+    save.phase = "generated";
+    save.path = "her";
+    save.areas = { ...save.areas, [area.area.id]: area.area as never };
+    save.state.currentAreaId = area.area.id;
+    save.state.pos = { x: 1, y: 1 };
+    saveWorldSession(save);
+
+    // The Improviser's reply, arriving through the non-streaming fallback.
+    model.push({ text: "The chalk is still warm. Somewhere below, water moves." });
+
+    const app2 = buildServer({ model });
+    const res = await app2.inject({
+      method: "POST",
+      url: `/api/world-sessions/${sessionId}/action`,
+      payload: { type: "freeText", text: "kneel and touch the circle" },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json() as { kind: string; ack: string };
+    expect(body.kind).toBe("ok");
+    expect(body.ack).toContain("The chalk is still warm");
+    await app.close();
+    await app2.close();
+  });
+
   it("rejects malformed actions with 400", async () => {
     const app = buildServer({ model: new FakeModelClient() });
     const created = await app.inject({

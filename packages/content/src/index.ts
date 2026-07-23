@@ -13,3 +13,8 @@ export {
   getPrologueAreas,
   isPrologueArea,
 } from "./prologue.js";
+export {
+  interstitialFor,
+  interstitialStart,
+  type Interstitial,
+} from "./interstitial.js";

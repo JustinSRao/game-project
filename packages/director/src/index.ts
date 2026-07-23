@@ -11,7 +11,15 @@ export {
   ModelOutputError,
   type ModelClient,
   type StructuredRequest,
+  type TextRequest,
 } from "./modelClient.js";
+export { collectProse, streamProse } from "./streaming.js";
+export {
+  buildImproviseUser,
+  improvise,
+  IMPROVISE_SYSTEM,
+  type ImproviseContext,
+} from "./improvise.js";
 export { OpenAIModelClient } from "./openaiClient.js";
 export { ValidatingModelClient } from "./validatingClient.js";
 export {
@@ -68,6 +76,7 @@ export {
 } from "./threshold.js";
 export {
   WorldDirector,
+  type TurnEvents,
   type WorldDirectorOptions,
   type WorldTurnResult,
 } from "./worldDirector.js";

@@ -1,9 +1,12 @@
 import Phaser from "phaser";
 import type { AreaSpec, PlacedEntity } from "@howeverfar/schema";
+import type { TurnStage } from "@howeverfar/schema";
 import {
   applyConvoChoice,
   choiceAffordable,
   interactionUsed,
+  interstitialFor,
+  interstitialStart,
   portalUnderPlayer,
   reachableEntities,
   runInteraction,
@@ -16,6 +19,7 @@ import {
   listSaves,
   sendAction,
   ServerError,
+  streamAction,
   type SaveInfo,
   type Session,
   type World,
@@ -253,18 +257,42 @@ export class PlayScene extends Phaser.Scene {
       );
       return;
     }
-    void sendAction(this.session, { type: "freeText", text })
+    // The reply is written prose, so it arrives a word at a time rather than
+    // after a silence (Phase 6). The panel opens empty and fills.
+    ui.beginStreamingNarration();
+    void streamAction(
+      this.session,
+      { type: "freeText", text },
+      { onChunk: (chunk) => ui.appendNarration(chunk) },
+    )
       .then((result) => {
         if (result.kind === "ok") {
           if (this.world) this.world = { ...this.world, state: result.state };
-          ui.showNarration(
+          ui.endStreamingNarration(
             result.ack ?? "The moment takes what you said and keeps it.",
           );
         }
       })
       .catch(() => {
-        ui.showNarration("Your words scattered before they landed — say it again.");
+        ui.endStreamingNarration(
+          "Your words scattered before they landed — say it again.",
+        );
       });
+  }
+
+  /**
+   * Dress a stage of the Director's work as a moment in the story (Phase 6).
+   * The lines are authored content, picked from the door being opened so the
+   * same door always opens with the same words.
+   */
+  private showStage(stage: TurnStage, seed: string): void {
+    const path = this.world?.area.path ?? "shared";
+    const passage = interstitialFor(path, stage);
+    ui.showInterstitial(
+      passage.title,
+      passage.lines,
+      interstitialStart(seed, passage.lines.length),
+    );
   }
 
   private tryInteract(): void {
@@ -320,14 +348,17 @@ export class PlayScene extends Phaser.Scene {
     if (!portal) return;
 
     if (this.session.mode === "server") {
-      if (portal.transition.type === "generate") {
-        ui.showVeil(
-          "The story is being written.",
-          `You chose ${portal.label}. What lies beyond has never existed until now — it is being authored for you, out of everything you just did.`,
-          "",
-        );
+      const seed = `${w.area.id}/${portal.id}`;
+      if (portal.transition.type !== "area") {
+        // Cover the wait from the first frame: the stage events refine what is
+        // on screen, but the door must not open onto a blank pause.
+        this.showStage(portal.transition.type === "ending" ? "closing" : "writing", seed);
       }
-      void sendAction(this.session, { type: "portal", portalId: portal.id })
+      void streamAction(
+        this.session,
+        { type: "portal", portalId: portal.id },
+        { onStage: (stage) => this.showStage(stage, seed) },
+      )
         .then((result) => {
           ui.hideVeil();
           if (result.kind === "area") {

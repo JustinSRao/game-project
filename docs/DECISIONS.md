@@ -437,3 +437,46 @@ a failed check moves the story sideways, never backwards, and never resolves to
 "nothing happens". A mechanic that can only stall is worse than no mechanic.
 `AreaEffect` supersedes `Effect` inside the Area DSL as a superset; the legacy text-era
 engine keeps the smaller union it already exhaustively handles.
+
+## ADR-0022: A turn can be watched — SSE stages, streamed prose, and the Interstitial
+
+**Status:** Accepted · 2026-07-22
+
+The Phase 4 go/no-go measured a ~3 minute crossing against the live API. Speculation
+(Phase 6) removes that wait when the player walks at a door with warning; it cannot
+remove the crossing itself, an ending, or a door taken from a standing start. Something
+has to be on the screen for those minutes, and the honest options were a progress
+indicator or fiction. **We chose fiction, and gave it real information to work with.**
+
+**Three parts.**
+
+1. **A streaming twin of the action route.** `POST /api/world-sessions/:id/action/stream`
+   returns the same `WorldTurnResult` as the plain route, preceded by `stage` events
+   (`profiling` → `planning` → `writing` → `arriving`, or `improvising`, or `closing`)
+   and `chunk` events carrying prose as it is written. Server-sent events, not a socket:
+   a turn is one request with one answer and a running commentary, which is exactly the
+   shape SSE has, and it needs no client protocol beyond `fetch`. The plain route stays,
+   unchanged, and the client falls back to it silently — a player must never lose a move
+   to a transport.
+
+2. **`streamText` is optional on `ModelClient`.** Adapters that can stream do; `streamProse`
+   falls back to a one-field structured call for those that cannot, so no Director code
+   branches on provider support and every existing test fake keeps working. Streamed
+   calls still record usage (ADR-0018) — after the stream drains, where the totals are
+   final.
+
+3. **The Interstitial.** Hand-authored passages per path in `@howeverfar/content`, shown
+   one line at a time while the Director works, chosen deterministically from the door
+   being opened so the same door always opens with the same words. This is authored
+   content, not generated: what the player reads at the *seams* of the game is ours. The
+   game never admits there is a machine behind it — no spinner, no percentage, no
+   "generating".
+
+**The Improviser.** The same streaming pathway made free text answerable at last: after
+the crossing, typing something now gets narration written for it rather than a fixed
+acknowledgement. Its boundary is absolute and is why it is allowed to be prose at all:
+**it returns narration, never data.** No flags, no items, no doors, no quest progress.
+A player cannot type their way into a state the engine did not authorize (ADR-0001) —
+the world can acknowledge anything and grant nothing. Inside the prologue nothing
+changes: the evening is hand-authored (CLAUDE.md invariant 4) and the acknowledgement
+stays honest about that.

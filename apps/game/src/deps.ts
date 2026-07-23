@@ -19,5 +19,8 @@ export {
 export {
   getPrologueArea,
   getPrologueAreas,
+  interstitialFor,
+  interstitialStart,
   PROLOGUE_ENTRY_ID,
+  type Interstitial,
 } from "@howeverfar/content";

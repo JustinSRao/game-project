@@ -6,6 +6,7 @@ import type {
   AreaTransition,
   StoryPath,
   ThresholdEnding,
+  TurnStage,
 } from "@howeverfar/schema";
 import { applyAreaAction, enterArea, initialAreaState } from "@howeverfar/engine";
 import {
@@ -18,6 +19,7 @@ import {
 import { CanonLedger } from "./canonLedger.js";
 import { costCounter } from "./costs.js";
 import { DIRECTOR_CONFIG } from "./config.js";
+import { improvise } from "./improvise.js";
 import type { ModelClient } from "./modelClient.js";
 import { advanceArc, buildProfile, isFinalAct, reviseArc } from "./stages.js";
 import {
@@ -66,6 +68,20 @@ export type WorldTurnResult =
   | { kind: "area"; area: AreaSpec; state: AreaGameState }
   | { kind: "ok"; state: AreaGameState; ack?: string }
   | { kind: "threshold"; summary: string; ending?: ThresholdEnding };
+
+/**
+ * Progress from a turn that has to wait on the model (Phase 6 latency). A
+ * caller that passes nothing gets exactly the old behaviour, so the plain
+ * request/response route and the CLI need no changes.
+ *
+ * `stage` is what the work is doing, phrased so a client can show it inside
+ * the fiction rather than as a progress bar; `chunk` is prose arriving as it
+ * is written.
+ */
+export interface TurnEvents {
+  stage?: (stage: TurnStage) => void;
+  chunk?: (text: string) => void;
+}
 
 export interface WorldDirectorOptions {
   model: ModelClient;
@@ -196,7 +212,10 @@ export class WorldDirector {
     return area;
   }
 
-  async handleAction(action: AreaAction): Promise<WorldTurnResult> {
+  async handleAction(
+    action: AreaAction,
+    events: TurnEvents = {},
+  ): Promise<WorldTurnResult> {
     if (this.session.phase === "ended") {
       return {
         kind: "threshold",
@@ -219,7 +238,12 @@ export class WorldDirector {
         this.session.state = outcome.outcome.state;
         this.touch();
         if (outcome.outcome.transition) {
-          return this.followTransition(outcome.outcome.transition, "a conversation");
+          return this.followTransition(
+            outcome.outcome.transition,
+            "a conversation",
+            undefined,
+            events,
+          );
         }
         return { kind: "ok", state: this.session.state };
       }
@@ -232,6 +256,7 @@ export class WorldDirector {
           outcome.outcome.transition,
           portal?.label ?? "a doorway",
           portal?.id,
+          events,
         );
       }
       case "moveTo": {
@@ -245,10 +270,34 @@ export class WorldDirector {
         return { kind: "ok", state: this.session.state };
       }
       case "freeText": {
-        // Free text is a profiling signal everywhere; a generation trigger
-        // only after the prologue (and that arrives with streaming, Phase 6).
+        // Free text is a profiling signal everywhere. In the prologue it is
+        // ONLY that — the evening is hand-authored and stays exactly as
+        // written (CLAUDE.md invariant 4), so the acknowledgement is honest
+        // about it. After the crossing the Director answers for real.
         this.touch();
-        return { kind: "ok", state: this.session.state, ack: PROLOGUE_FREETEXT_ACK };
+        if (this.session.phase === "prologue") {
+          return { kind: "ok", state: this.session.state, ack: PROLOGUE_FREETEXT_ACK };
+        }
+        events.stage?.("improvising");
+        const ack = await this.charge(() =>
+          improvise(
+            this.model,
+            {
+              path: this.session.path as "her" | "his",
+              area,
+              state: this.session.state,
+              facts: this.ledger.retrieve(
+                area.entities.map((e) => e.id),
+                DIRECTOR_CONFIG.retrievalLimit,
+              ),
+              profile: this.session.profile,
+              text: outcome.text,
+            },
+            { ...(events.chunk ? { onChunk: events.chunk } : {}), log: this.log },
+          ),
+        );
+        this.touch();
+        return { kind: "ok", state: this.session.state, ack };
       }
     }
   }
@@ -290,6 +339,7 @@ export class WorldDirector {
     t: AreaTransition,
     label: string,
     portalId?: string,
+    events: TurnEvents = {},
   ): Promise<WorldTurnResult> {
     switch (t.type) {
       case "area": {
@@ -307,17 +357,19 @@ export class WorldDirector {
               `generate transition "${label}" reached during the prologue outside the crossing`,
             );
           }
-          await this.commitPathChoice(path);
+          await this.commitPathChoice(path, events);
         }
-        return this.generateNextArea(t.hint, portalId);
+        return this.generateNextArea(t.hint, portalId, events);
       }
       case "ending": {
         if (!this.session.arc || !isFinalAct(this.session.arc)) {
           return this.generateNextArea(
             `The player moved toward an ending ("${t.hint}") — but the story is not finished. Give this attempted conclusion real narrative weight, then turn it back toward the work the arc still owes.`,
+            undefined,
+            events,
           );
         }
-        return this.reachThreshold(t.hint);
+        return this.reachThreshold(t.hint, events);
       }
     }
   }
@@ -328,7 +380,11 @@ export class WorldDirector {
    * hint back at the player, and it records what the playthrough carries into
    * a future Reunion (Phase 7).
    */
-  private async reachThreshold(hint: string): Promise<WorldTurnResult> {
+  private async reachThreshold(
+    hint: string,
+    events: TurnEvents = {},
+  ): Promise<WorldTurnResult> {
+    events.stage?.("closing");
     if (!this.session.arc || !this.session.profile || this.session.path === "shared") {
       // Should be unreachable: endings are gated on the final act, which only
       // exists after the crossing. Close the session honestly rather than throw.
@@ -393,11 +449,15 @@ export class WorldDirector {
   }
 
   /** The crossing: read the player, load the rails, plan their side of the story. */
-  private async commitPathChoice(path: Exclude<StoryPath, "shared">): Promise<void> {
+  private async commitPathChoice(
+    path: Exclude<StoryPath, "shared">,
+    events: TurnEvents = {},
+  ): Promise<void> {
     this.log(`path chosen: ${path} — profiling player and planning the arc`);
     this.session.path = path;
 
     if (!this.session.profile) {
+      events.stage?.("profiling");
       this.session.profile = await buildProfile(this.model, this.session.signals);
     }
 
@@ -411,6 +471,7 @@ export class WorldDirector {
     this.session.canon = [...this.ledger.all()];
 
     if (!this.session.arc) {
+      events.stage?.("planning");
       this.session.arc = await createWorldArc(
         this.model,
         path,
@@ -452,12 +513,18 @@ export class WorldDirector {
   private async generateNextArea(
     hint: string,
     portalId?: string,
+    events: TurnEvents = {},
   ): Promise<WorldTurnResult> {
+    events.stage?.("writing");
     const result =
       (await this.claimSpeculation(portalId)) ??
       (await this.charge(() =>
         writeArea(this.model, this.writerContext(hint), { log: this.log }),
       ));
+    // The map exists; what is left is canon extraction and arc bookkeeping,
+    // which is the short half. Worth its own stage so the client can change
+    // what it is saying instead of holding one line for three minutes.
+    events.stage?.("arriving");
     await this.acceptArea(result.area, result.advancesBeatId);
     return { kind: "area", area: result.area, state: this.session.state };
   }

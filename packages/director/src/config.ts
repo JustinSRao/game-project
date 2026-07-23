@@ -39,6 +39,19 @@ export const DIRECTOR_CONFIG = {
     effort: "high",
     adaptiveThinking: true,
   },
+  /**
+   * Answers free-text actions in prose (Phase 6). Strong tier because it is
+   * the player's own words coming back at them and a flat reply reads worse
+   * than no reply — but small and low-effort, because it fires on a keypress
+   * and its whole value is arriving fast.
+   */
+  improviser: {
+    model: "claude-opus-4-8",
+    tier: "strong",
+    maxTokens: 1000,
+    effort: "low",
+    adaptiveThinking: false,
+  },
   /** Reads play signals into the Player Profile. */
   profiler: {
     model: "claude-opus-4-8",

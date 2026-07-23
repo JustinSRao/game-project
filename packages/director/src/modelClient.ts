@@ -20,8 +20,29 @@ export interface StructuredRequest<T> {
   schema: z.ZodType<T, z.ZodTypeDef, unknown>;
 }
 
+/**
+ * A prose request. Deliberately separate from StructuredRequest: this is the
+ * one place the Director wants text rather than data, and it exists so prose
+ * the player reads can arrive while it is being written (Phase 6 latency).
+ * Nothing authored through here may become game state — that would break the
+ * data-not-code rule (ADR-0001). It is narration, and narration only.
+ */
+export interface TextRequest {
+  role: RoleConfig;
+  /** Frozen system prompt — first for prefix stability (prompt caching). */
+  system: string;
+  /** The per-turn user content. Stable parts first, volatile parts last. */
+  user: string;
+}
+
 export interface ModelClient {
   generateStructured<T>(req: StructuredRequest<T>): Promise<T>;
+  /**
+   * Stream prose as the model writes it. Optional: an adapter that cannot
+   * stream simply omits it, and `streamProse` (streaming.ts) falls back to a
+   * single structured call — so no caller has to branch on provider support.
+   */
+  streamText?(req: TextRequest): AsyncIterable<string>;
 }
 
 export class ModelOutputError extends Error {
@@ -88,5 +109,39 @@ export class AnthropicModelClient implements ModelClient {
       );
     }
     return req.schema.parse(parsed);
+  }
+
+  async *streamText(req: TextRequest): AsyncIterable<string> {
+    const stream = this.client.messages.stream({
+      model: req.role.model,
+      max_tokens: req.role.maxTokens,
+      system: [{ type: "text", text: req.system, cache_control: { type: "ephemeral" } }],
+      messages: [{ role: "user", content: req.user }],
+    });
+
+    for await (const event of stream) {
+      if (
+        event.type === "content_block_delta" &&
+        event.delta.type === "text_delta" &&
+        event.delta.text
+      ) {
+        yield event.delta.text;
+      }
+    }
+
+    // Recorded after the stream drains, where the usage totals are final —
+    // but unconditionally, because a call that streamed and then failed still
+    // cost money (ADR-0018).
+    const final = await stream.finalMessage();
+    recordUsage({
+      provider: "anthropic",
+      model: req.role.model,
+      role: roleNameOf(req.role),
+      kind: "text",
+      inputTokens: final.usage.input_tokens,
+      cachedInputTokens: final.usage.cache_read_input_tokens ?? 0,
+      cacheWriteTokens: final.usage.cache_creation_input_tokens ?? 0,
+      outputTokens: final.usage.output_tokens,
+    });
   }
 }

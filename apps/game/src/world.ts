@@ -4,7 +4,9 @@ import type {
   AreaSpec,
   AreaTransition,
   ThresholdEnding,
+  TurnStage,
 } from "@howeverfar/schema";
+import { TurnEvent } from "@howeverfar/schema";
 import {
   enterArea,
   initialAreaState,
@@ -144,6 +146,101 @@ export async function sendAction(
     throw new ServerError(message, res.status);
   }
   return (await res.json()) as ServerTurn;
+}
+
+export interface TurnHandlers {
+  /** What the Director is doing now, so the wait can be dressed as fiction. */
+  onStage?: (stage: TurnStage) => void;
+  /** Prose arriving as it is written. */
+  onChunk?: (text: string) => void;
+}
+
+/**
+ * Send an action and follow the turn as it happens (Phase 6 latency).
+ *
+ * Falls back to the plain route whenever streaming is not available — an old
+ * server, a browser without a body reader, a proxy that ate the stream. The
+ * fallback is silent and lossless: the same turn, the same result, just
+ * without the commentary. A player must never lose a move to a transport.
+ */
+export async function streamAction(
+  session: Session,
+  action: AreaAction,
+  handlers: TurnHandlers = {},
+): Promise<ServerTurn> {
+  if (session.mode !== "server" || !session.id) {
+    throw new Error("streamAction requires a server session");
+  }
+  let res: Response;
+  try {
+    res = await fetch(`/api/world-sessions/${session.id}/action/stream`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(action),
+    });
+  } catch {
+    return sendAction(session, action);
+  }
+  if (!res.ok || !res.body) {
+    if (res.status === 404 || res.status === 405) return sendAction(session, action);
+    let message = `server said ${res.status}`;
+    try {
+      const body = (await res.json()) as { error?: string };
+      if (body.error) message = body.error;
+    } catch {
+      // keep the status message
+    }
+    throw new ServerError(message, res.status);
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let outcome: ServerTurn | undefined;
+  let failure: string | undefined;
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (value) buffer += decoder.decode(value, { stream: true });
+    // SSE frames are separated by a blank line; a partial frame stays in the
+    // buffer until the rest of it arrives.
+    let split = buffer.indexOf("\n\n");
+    while (split !== -1) {
+      const frame = buffer.slice(0, split);
+      buffer = buffer.slice(split + 2);
+      const payload = frame
+        .split("\n")
+        .filter((line) => line.startsWith("data:"))
+        .map((line) => line.slice(5).trim())
+        .join("");
+      if (payload) {
+        const event = parseTurnEvent(payload);
+        if (event?.type === "stage") handlers.onStage?.(event.stage);
+        else if (event?.type === "chunk") handlers.onChunk?.(event.text);
+        else if (event?.type === "result") outcome = event.result as ServerTurn;
+        else if (event?.type === "error") failure = event.message;
+      }
+      split = buffer.indexOf("\n\n");
+    }
+    if (done) break;
+  }
+
+  if (failure) throw new ServerError(failure, 502);
+  if (!outcome) {
+    // The stream ended without saying how the turn went — the server may have
+    // died mid-write. Ask the plain route rather than guessing.
+    throw new ServerError("The connection dropped before the world arrived.", 502);
+  }
+  return outcome;
+}
+
+function parseTurnEvent(payload: string): TurnEvent | undefined {
+  try {
+    const parsed = TurnEvent.safeParse(JSON.parse(payload));
+    return parsed.success ? parsed.data : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export type TransitionResult =

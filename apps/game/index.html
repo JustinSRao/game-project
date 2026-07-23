@@ -138,6 +138,17 @@
       #veil h1 { font-size: 22px; font-weight: normal; color: var(--accent); letter-spacing: 0.04em; }
       #veil p { font-size: 15px; line-height: 1.6; color: var(--text); }
       #veil .hint { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--dim); }
+      /* Interstitial lines arrive rather than appear — the wait is a moment in
+         the fiction, not a progress bar. */
+      #veil p.arriving { animation: arrive 1200ms ease-out; }
+      @keyframes arrive { from { opacity: 0; } 40% { opacity: 0.85; } to { opacity: 1; } }
+      #panel .line.streaming::after {
+        content: "▍";
+        color: var(--accent);
+        animation: blink 900ms steps(2, start) infinite;
+        margin-left: 2px;
+      }
+      @keyframes blink { to { visibility: hidden; } }
       #veil .options { display: flex; flex-direction: column; gap: 8px; text-align: left; margin: 0 auto; }
       #veil .option { font-size: 15px; color: var(--text); }
       #veil .option .key {
