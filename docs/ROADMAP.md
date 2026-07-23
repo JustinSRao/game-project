@@ -85,25 +85,36 @@ Goal: walk a character through a generated map in the Phaser client, on either p
 
 Goal: a large, coherent, growing pixel-art database, operable by agents (ADR-0011).
 
-- [ ] `apps/asset-studio` CLI: `import` / `validate` / `normalize` / `preview` /
-      `catalog` — every asset passes `processArt` + checks (dimensions, palette,
-      transparency, frame consistency) before entering the DB.
-      *Progress: scaffold landed with working `validate` + `normalize` (tested,
-      smoke-tested end to end), draft per-path style bibles, and a human-usable web
-      UI (`npm run studio`, drag-and-drop gate with before/after previews — owner
-      directive: usable without an agent)*
-- [ ] Asset database in `packages/library`: content-addressed storage + queryable
-      catalog (kind, tags, palette, size, source, license)
-- [ ] CC0 ingestion: curate Kenney/OpenGameArt packs (tilesets, base characters, props),
-      recolor/recombine variants, record attribution
-- [ ] Sprite-as-data: schema for palette-indexed pixel grids the model can emit;
-      renderer to PNG; validation like any other asset
-- [ ] `gpt-image-2` provider behind the existing `ImageProvider` seam (chroma-key,
-      post-process, cache — see "Notes for a real image provider" in ARCHITECTURE.md)
-- [ ] Agent workflow: `asset-studio` Claude skill so "create a village tileset" in a
-      Claude Code chat runs the tool, asks clarifying questions, and lands validated
-      assets. Web preview UI only if the CLI proves insufficient
-- [ ] Animation support: frame-sequence assets (walk cycles, effects) validated as sets
+- [x] `apps/asset-studio` CLI: `validate` / `normalize` / `import` / `sprite` /
+      `generate` / `variant` / `catalog` / `preview` / `credits` — every asset passes
+      `processArt` + checks (dimensions, palette, transparency, frame consistency)
+      before entering the DB. Agent-operable throughout (non-interactive, exit codes,
+      `--json`, `--db` for scratch databases), and the human web UI (`npm run studio`)
+      now reaches the database too: gate a PNG, name it, record where it came from,
+      and it's filed — owner directive (usable without an agent) intact
+- [x] Asset database in `packages/library`: content-addressed blobs + queryable
+      catalog (kind, tags, path/style, size, source, license, `derivedFrom`). Blobs
+      dedup by hash; catalog records are keyed by logical identity, so the same pixels
+      can be two entries (one asset in both worlds) without one destroying the other
+- [~] CC0 ingestion: **tooling done** — `import --source cc0` refuses without
+      pack/author/url, `variant` recolors and restyles (attribution chains via
+      `derivedFrom`), `credits` renders the shipping notice from the catalog.
+      *Remaining: actually curating Kenney/OpenGameArt packs — an art-direction call
+      for the owner, not something to pick unilaterally*
+- [x] Sprite-as-data: `SpriteData` schema (palette-indexed rows, `.` transparent,
+      base-32 indices), deterministic `renderSpriteData`, validated like any other
+      asset. Committed specs in `apps/asset-studio/sprites/`, `npm run seed` rebuilds
+      the DB from them; three starter tiles for the prologue's real world
+- [x] `gpt-image-2` provider behind the existing `ImageProvider` seam — deterministic
+      prompt from request+style (so the asset cache works), border-flood chroma-key,
+      no post-processing inside the provider, every call recorded in the cost ledger
+      before any failure path returns. `generate` refuses to spend without `--yes`
+- [x] Agent workflow: `asset-studio` skill updated with the command surface,
+      sprite-as-data authoring guidance, the catalog-vs-blob keying rule, and the
+      instruction to actually look at the preview before declaring success
+- [x] Animation support: frame-sequence assets validated as a set (`validateFrameSet`,
+      `validate --frames`, `import --frames --frame-ms`), stored as ordered frame
+      hashes on one catalog record
 
 ## Phase 6 — The living RPG
 

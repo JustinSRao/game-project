@@ -50,6 +50,15 @@ several at once. Each file gets a card showing:
   errors (red) mean it can't go in the game as-is.
 - **A download button** — saves the gated PNG to your computer. That downloaded
   file is the game-ready version.
+- **"Add to database"** — on anything that PASSed. Give it a short name (lowercase,
+  dashes), optional tags, and say where the art came from. That last part matters:
+  if you picked it up from a free asset pack, choose *CC0 pack* and fill in the
+  pack, author and url — the Studio won't file it otherwise, and those fields are
+  what the game's credits are built from later.
+
+**5. Look at the database** at the bottom of the page — everything that has been
+filed, with thumbnails. That database is what the game reads; a PNG you only
+downloaded is not in the game.
 
 **Typical fixes when something FAILs:**
 
@@ -74,10 +83,31 @@ npm start -w @howeverfar/asset-studio -- normalize raw/*.png \
 # Check finished art against the rules:
 npm start -w @howeverfar/asset-studio -- validate normalized/*.png \
   --style styles/her-world.draft.json --kind sprite --json
+
+# Gate art AND file it in the database (free asset packs need attribution):
+npm start -w @howeverfar/asset-studio -- import raw/roof.png \
+  --style styles/his-world.draft.json --kind tile --path his \
+  --source cc0 --pack "Tiny Town" --author Kenney --url https://kenney.nl/... \
+  --tags roof,house
+
+# See what's in the database, and look at it:
+npm start -w @howeverfar/asset-studio -- catalog
+npm start -w @howeverfar/asset-studio -- preview --all --out previews/ --scale 8
+
+# Make a color variant, or the same asset for the other world:
+npm start -w @howeverfar/asset-studio -- variant roof --name roof-blue --map "#ac2847=#3e3b65"
+
+# The credits the game will ship, built from what's filed:
+npm start -w @howeverfar/asset-studio -- credits
 ```
 
 Exit codes: `0` pass · `1` failed validation · `2` bad arguments or unreadable file.
-Add `--json` for machine-readable output.
+Add `--json` for machine-readable output, and `--db <dir>` to work in a scratch
+database instead of the real one.
+
+**One command spends money:** `generate` calls the image model with your OpenAI
+key, so it refuses to run unless you pass `--yes`. Every call it makes is written
+to the cost ledger (`npm run costs -w @howeverfar/director`).
 
 You can also just ask Claude in a session: *"make me a village tileset for her
 world"* — the agent will ask clarifying questions, generate or import the art, and
@@ -101,11 +131,30 @@ The files in `styles/` define each world's look: its palette, grid size, and
 outline rule. They are currently **drafts** (her-world starts from the free
 Sweetie-16 palette) — final palettes get locked when real art production starts,
 and locking is a recorded decision. If an asset should exist in both worlds, it
-goes through the gate once per world.
+goes through the gate once per world (`variant <name> --style <other-bible> --path <other>`).
 
-## Coming next (ROADMAP Phase 5)
+## The asset database
 
-Importing free CC0 asset packs (with license bookkeeping), a browsable catalog of
-everything that has passed the gate, AI sprite generation, and the gpt-image-2
-provider — all through this same gate, and every AI generation recorded in the
-cost ledger (ADR-0018).
+Filed assets live under `HOWEVERFAR_HOME` (default `~/.however-far/assets`):
+
+- `blobs/<hash>.png` — the gated images, named by a hash of their own contents, so
+  identical art is stored once.
+- `catalog/<world>.<kind>.<name>.json` — one record per asset: size, tags, where it
+  came from, its license, and which asset it was derived from if it's a variant.
+
+Art we author ourselves lives in the repo as text, not as PNGs:
+`sprites/<world>-world/<kind>s/<name>.json` holds a pixel grid (one character per
+pixel, indexing the palette). `npm run seed -w @howeverfar/asset-studio` rebuilds
+the database from those files, so the database is always regenerable and the art
+is reviewable in a diff.
+
+There are three tiles in there today — sidewalk, street, and hedge for the
+prologue's real world. They are starter art against draft palettes; replace them
+freely once the look is decided.
+
+## Still to come
+
+Curated CC0 packs (the tooling and the license bookkeeping are done — choosing
+which packs match the game's look is an art-direction call), and binding catalog
+entries to the tiles and characters the game renders, which lands with the
+rendering work in Phase 6.

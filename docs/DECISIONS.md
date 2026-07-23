@@ -313,3 +313,40 @@ best-effort and never breaks play. `eval:world` prints each run's call count and
 through an instrumented adapter or call `recordUsage` itself — a call that doesn't land
 in the ledger is a bug. (The pre-existing text-era eval runs and the first Phase 4
 go/no-go run predate the ledger and are not in it.)
+
+## ADR-0019: Asset identity — blobs by content, catalog records by name
+
+**Status:** Accepted · 2026-07-22
+
+The asset database (ADR-0011) stores two different things with two different keys, and
+conflating them is a data-loss bug:
+
+- **Blobs** (`blobs/<sha256>.png`) are keyed by a hash of their own bytes. Two assets
+  that gate to identical pixels share one file. This is the point of content addressing
+  and it stays.
+- **Catalog records** (`catalog/<path>.<kind>.<name>.json`) are keyed by the asset's
+  *logical identity*. They are deliberately NOT keyed by content hash.
+
+The first implementation filed records by hash and it was wrong. The same pixels
+legitimately appear as more than one catalog entry — most obviously "the same asset in
+both worlds is two entries, one per style bible" (asset-studio skill), which is exactly
+what happens whenever a gated image lands identically in her-world and his-world, or
+when one image is cataloged under two names. Hash-keyed records made the second write
+silently destroy the first. A regression test in `packages/library/test/assets.test.ts`
+pins the behaviour.
+
+`AssetRecord.id` remains the first frame's content hash: it is the cross-reference and
+cache key, just not the filename. Uniqueness is enforced on `(path, kind, name)` —
+re-storing identical content is a no-op, storing different content under a taken name
+requires an explicit `replace`.
+
+**Provenance chains rather than being overwritten.** A `variant` (recolor or restyle)
+keeps its parent's `source` verbatim and records `derivedFrom: <parent id>`. A recolored
+Kenney tile is still Kenney's CC0 work, so it must still credit Kenney — `credits`
+builds the shipping attribution from `source` alone and therefore covers every
+derivative for free. Re-sourcing a derived asset as "hand" or "sprite-data" is an
+attribution bug, not a shortcut.
+
+**Consequence:** anything that writes to the asset DB goes through `putAsset`, which
+owns both rules. Code that computes a catalog path itself, or that replaces `source` on
+a derivative, is a bug.

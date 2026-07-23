@@ -160,10 +160,14 @@ render instantly, real assets swap in; no gameplay path blocks on an image.
 ## 5. Persistence & the asset database
 
 File-based under `HOWEVERFAR_HOME` (ADR-0007): sessions, canon, profiles as validated
-JSON; the asset DB as content-addressed files + a catalog index. The public universe
-library is cut (ADR-0012); the Reunion (Phase 7) instead requires both paths' canon to
-export/merge cleanly — that requirement shapes canon storage now. A real database appears
-only if/when multiplayer demands it, contained inside `packages/library`.
+JSON; the asset DB as `blobs/<sha256>.png` plus a `catalog/` of validated `AssetRecord`s
+keyed by `path.kind.name` — content addressing for the pixels, logical identity for the
+records (ADR-0019). Art we author ourselves is committed as sprite-as-data text under
+`apps/asset-studio/sprites/` and the database rebuilt from it (`npm run seed`), so the
+DB stays a derived artifact. The public universe library is cut (ADR-0012); the Reunion
+(Phase 7) instead requires both paths' canon to export/merge cleanly — that requirement
+shapes canon storage now. A real database appears only if/when multiplayer demands it,
+contained inside `packages/library`.
 
 ## 6. Tech stack
 

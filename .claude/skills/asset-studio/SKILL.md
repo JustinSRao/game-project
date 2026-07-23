@@ -33,6 +33,38 @@ You are the operator. The flow:
    (send the PNG file(s)).
 5. Commit and push, like any other verified unit of work.
 
+## The commands you drive
+
+Run from `apps/asset-studio` (`npm start -w @howeverfar/asset-studio -- <command>`).
+Every one takes `--json` and exits 0 pass / 1 findings / 2 usage.
+
+| Command | What it does |
+|---|---|
+| `validate <png...> --style --kind [--frames]` | Check gate-readiness; `--frames` validates one animation as a set |
+| `normalize <png...> --style --out` | Run `processArt` only, write the gated PNGs |
+| `import <png...> --style --kind --path --source` | Normalize + validate + land in the database. `--frames` makes the inputs one animation (`--frame-ms`) |
+| `sprite <spec.json...> --style --kind --path [--import]` | Render sprite-as-data grids through the gate |
+| `generate --subject --mood --style --kind --path --yes` | gpt-image-2. **Spends money**, refuses without `--yes` |
+| `variant <name> --name <new> [--map] [--style --path]` | Recolor and/or restyle a cataloged asset into a new entry |
+| `catalog [--kind --path --tag --name --source]` | Query the database |
+| `preview [<name>...] [--all] --out [--scale]` | Upscaled PNGs for human eyes |
+| `credits` | The shipping attribution list, built from the catalog |
+
+Add `--db <dir>` to work against a scratch database instead of
+`HOWEVERFAR_HOME/assets` — do that when experimenting, so you never pollute the
+owner's real catalog.
+
+**Writing sprite-as-data.** One string per row, `.` transparent, base-32 digits
+indexing the spec's own palette (`0`–`9` then `a`–`v`). Keep the palette inside the
+target style bible's colors — the gate will snap strays, but a snapped color is a
+color you didn't choose. Texture from modular arithmetic (`(x*5+y*11)%17`) produces
+visible diagonal banding; use an integer hash of `(x, y)` when you want organic
+noise. Committed specs live in `apps/asset-studio/sprites/<path>-world/<kind>s/` and
+`npm run seed` rebuilds the database from them.
+
+**Always look at what you made.** Run `preview` and read the PNG back before telling
+the user it is done — validation proves it is legal, not that it looks like anything.
+
 ## Tool rules (for work on apps/asset-studio itself)
 
 - **CLI-first, agent-operable:** every operation must work non-interactively with exit
@@ -44,9 +76,19 @@ You are the operator. The flow:
   orchestration + IO. Don't duplicate pipeline logic in the app.
 - The asset database is content-addressed; the catalog is the queryable index. An asset
   without catalog metadata (source, license, tags) is a validation failure.
+  **Blobs** dedup by content hash — that is the point. **Catalog records** are filed by
+  logical identity (`path.kind.name`), because the same pixels legitimately appear as
+  two entries (one asset in both worlds), and hashing the record file would let the
+  second put destroy the first.
 - CC0 is not "no bookkeeping": record pack, author, URL, and license per imported asset.
+  A `variant` keeps its parent's `source` and records `derivedFrom`, so attribution
+  chains instead of being overwritten — never "re-source" a derived asset as your own.
 - Never bypass `processArt` — a provider or importer that pre-processes its own output
-  breaks the one-place-enforces-the-look guarantee.
+  breaks the one-place-enforces-the-look guarantee. The `gpt-image-2` provider returns
+  raw pixels (chroma-keyed, not post-processed) for exactly this reason.
+- **Every paid call lands in the cost ledger** (ADR-0018): `generate` is the only
+  command that spends, it records before any failure path returns, and the per-image
+  price in `IMAGE_PRICING` is flagged UNVERIFIED — image counts are the ground truth.
 
 ## Style bibles
 
