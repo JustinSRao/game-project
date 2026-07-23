@@ -754,6 +754,7 @@ export class PlayScene extends Phaser.Scene {
 
     this.entityLayer = this.add.container(0, 0);
     this.redrawEntities();
+    this.registerPortraits();
 
     const spawn = this.world.state.pos;
     this.player = this.add
@@ -771,6 +772,32 @@ export class PlayScene extends Phaser.Scene {
       Math.max(area.height * TILE, Number(this.game.config.height)),
     );
     cam.centerOn((area.width * TILE) / 2, (area.height * TILE) / 2);
+  }
+
+  /**
+   * Point the dialogue portrait slot at the server's portrait endpoint for
+   * each character in the area. The <img> only fetches when a conversation
+   * actually opens, and the server caches by character+palette, so this costs
+   * nothing until you talk to someone. Local play (no server) shows no
+   * portrait, which the panel handles by simply omitting the slot.
+   */
+  private registerPortraits(): void {
+    const w = this.world;
+    if (!w) return;
+    if (this.session.mode !== "server" && !this.reunion) return;
+    const path = this.reunion
+      ? "reunion"
+      : w.area.path === "her" || w.area.path === "his"
+        ? w.area.path
+        : "shared";
+    for (const e of w.area.entities) {
+      if (e.role !== "character") continue;
+      const url =
+        `/api/portrait?path=${encodeURIComponent(path)}` +
+        `&name=${encodeURIComponent(e.name)}` +
+        `&appearance=${encodeURIComponent(e.description)}`;
+      ui.setPortrait(e.id, url);
+    }
   }
 
   private redrawEntities(): void {

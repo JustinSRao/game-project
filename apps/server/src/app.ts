@@ -8,6 +8,7 @@ import { ReunionManager } from "./reunionManager.js";
 import { registerSessionRoutes } from "./routes/sessions.js";
 import { registerLibraryRoutes } from "./routes/library.js";
 import { registerArtRoutes } from "./routes/art.js";
+import { registerPortraitRoutes } from "./routes/portrait.js";
 import { registerWorldRoutes } from "./routes/world.js";
 import { registerReunionRoutes } from "./routes/reunion.js";
 
@@ -51,6 +52,7 @@ export function buildServer(opts: BuildServerOptions = {}): FastifyInstance {
   registerSessionRoutes(app, sessions);
   registerLibraryRoutes(app);
   registerArtRoutes(app, sessions);
+  registerPortraitRoutes(app);
   registerWorldRoutes(app, worldSessions);
 
   // The Reunion is the only part of the game with two people in it, so it is
