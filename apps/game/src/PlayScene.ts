@@ -41,6 +41,11 @@ import * as ui from "./ui.js";
 
 export const TILE = 48;
 const MOVE_MS = 140;
+/** LPC character sheet geometry (classic layout: 13 cols, 64px frames). */
+const FRAME = 64;
+const SHEET_COLS = 13;
+/** Row of each direction's walk cycle in the classic LPC layout. */
+const WALK_ROW: Record<Direction, number> = { up: 8, left: 9, down: 10, right: 11 };
 /** How close the player gets before we ask the server to write what is beyond. */
 const APPROACH_RADIUS = 4;
 
@@ -66,7 +71,8 @@ function describeSave(save: SaveInfo): string {
 export class PlayScene extends Phaser.Scene {
   private world?: World;
   private session: Session = { mode: "local" };
-  private player!: Phaser.GameObjects.Rectangle;
+  private player!: Phaser.GameObjects.Sprite;
+  private facing: Direction = "down";
   private mapLayer!: Phaser.GameObjects.Container;
   private entityLayer!: Phaser.GameObjects.Container;
   private moving = false;
@@ -87,7 +93,38 @@ export class PlayScene extends Phaser.Scene {
     super("play");
   }
 
+  preload(): void {
+    // LPC character (CC-BY-SA 3.0 / GPL 3.0 — see apps/game/CREDITS.md).
+    this.load.spritesheet("hero", "/assets/character.png", {
+      frameWidth: FRAME,
+      frameHeight: FRAME,
+    });
+  }
+
+  /** The four walk cycles, defined once (frames 1–8 of each direction's row). */
+  private defineAnims(): void {
+    if (this.anims.exists("walk-down")) return;
+    (Object.keys(WALK_ROW) as Direction[]).forEach((dir) => {
+      const row = WALK_ROW[dir];
+      this.anims.create({
+        key: `walk-${dir}`,
+        frames: this.anims.generateFrameNumbers("hero", {
+          start: row * SHEET_COLS + 1,
+          end: row * SHEET_COLS + 8,
+        }),
+        frameRate: 10,
+        repeat: -1,
+      });
+    });
+  }
+
+  /** The standing frame (column 0) for a direction. */
+  private idleFrame(dir: Direction): number {
+    return WALK_ROW[dir] * SHEET_COLS;
+  }
+
   create(): void {
+    this.defineAnims();
     ui.showVeil("However Far", "Opening the evening…", "");
     void this.boot();
 
@@ -194,6 +231,8 @@ export class PlayScene extends Phaser.Scene {
       if (this.reunion) {
         this.reunion.client.send({ type: "moveTo", pos: { ...after.pos } });
       }
+      this.facing = dir;
+      this.player.anims.play(`walk-${dir}`, true);
       this.moving = true;
       this.tweens.add({
         targets: this.player,
@@ -202,8 +241,18 @@ export class PlayScene extends Phaser.Scene {
         duration: MOVE_MS,
         onComplete: () => {
           this.moving = false;
+          // Settle onto the standing frame unless another step is already held.
+          if (!this.heldDirection()) {
+            this.player.anims.stop();
+            this.player.setFrame(this.idleFrame(this.facing));
+          }
         },
       });
+    } else {
+      // Turned into a wall: face that way but stand still.
+      this.facing = dir;
+      this.player.anims.stop();
+      this.player.setFrame(this.idleFrame(dir));
     }
   }
 
@@ -706,8 +755,10 @@ export class PlayScene extends Phaser.Scene {
 
     const spawn = this.world.state.pos;
     this.player = this.add
-      .rectangle(spawn.x * TILE + TILE / 2, spawn.y * TILE + TILE / 2, TILE - 14, TILE - 10, 0xe8e6df)
-      .setStrokeStyle(2, 0xffcd75, 1)
+      .sprite(spawn.x * TILE + TILE / 2, spawn.y * TILE + TILE / 2, "hero", this.idleFrame(this.facing))
+      // Origin low on the frame so the character stands on the tile with the
+      // head rising above it — the taller-than-a-tile look of a top-down JRPG.
+      .setOrigin(0.5, 0.78)
       .setDepth(10);
 
     const cam = this.cameras.main;
@@ -776,8 +827,10 @@ export class PlayScene extends Phaser.Scene {
     const x = partner.pos.x * TILE + TILE / 2;
     const y = partner.pos.y * TILE + TILE / 2;
     const sprite = this.add
-      .rectangle(x, y, TILE - 14, TILE - 10, 0xe8e6df)
-      .setStrokeStyle(2, 0x8fd3ff, 1);
+      .sprite(x, y, "hero", this.idleFrame("down"))
+      .setOrigin(0.5, 0.78)
+      // A cool tint so the two players read apart at a glance.
+      .setTint(0xbfd4ff);
     const label = this.add
       .text(x, partner.pos.y * TILE - 4, partner.name, {
         fontFamily: "ui-monospace, Consolas, monospace",
