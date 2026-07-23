@@ -221,8 +221,14 @@ Goal: the game can be beaten. See **docs/REUNION.md** for the fiction and how to
       address the Call already needed. Works with no internet and no service, mintable
       by any storefront that can send a receipt, and **both** players are checked.
       Fails closed when unconfigured. It is a receipt, not a lock, and says so
-- [ ] *Not decided:* which storefront takes the money. All of them deliver a key string,
-      so all of them fit; this is an owner call, not a code change
+- [x] **Storefront — deferred to Phase 8 (owner call, 2026-07-23).** Any storefront that
+      can put a key string in a receipt fits, so this is not a code change and does not
+      gate the finale. One constraint carries forward for whoever picks it: keys are
+      HMAC-bound to the buyer's email (`packages/entitlement`), so they cannot be a
+      pre-uploaded anonymous key pool — each sale needs the buyer's address to mint its
+      key. Under the no-service rule that means minting per sale from the storefront's
+      order email (`npm run mint -w @howeverfar/entitlement -- buyer@example.com`), by
+      hand or a small local script. Revisit alongside distribution in Phase 8.
 
 ## Phase 8 — Platforms & distribution (long-term)
 
@@ -246,5 +252,13 @@ Goal: the game can be beaten. See **docs/REUNION.md** for the fiction and how to
   One of the two players runs the server; the guest's finished playthrough travels inside
   their Call, so it does not matter which machine it was lived on. No service, so nothing
   to pay for and nothing to keep running.
-- Does the Reunion need its own art pass? Both worlds' palettes meet in one area for the
-  first time (ADR-0020 built them as two separate tonal ramps).
+- ~~Does the Reunion need its own art pass? Both worlds' palettes meet in one area for the
+  first time (ADR-0020 built them as two separate tonal ramps).~~ **Answered: yes, and it
+  has one (2026-07-23).** The Reunion gets a third locked draft palette,
+  `apps/asset-studio/styles/reunion.draft.json` (`reunion-seam-draft`) — his world's cold
+  concrete/dusk neutrals as the structure, her world's saturated arcane accents as the
+  light bleeding through, plus bruised-twilight seam tones where they meet; neither ramp
+  wins. The World Writer's Reunion prompt now teaches that seam palette for the placeholder
+  tiles that actually render, and to escalate the mix across the finale (mostly-his
+  underpass → full coexistence by the last area). Still a draft like the other two —
+  locking it against real gameplay is the owner's call (ADR-0020).

@@ -80,6 +80,23 @@ Reunion's prompts are told both are true.
 whatever her world made of the same place on hers. STORY.md fixes only that she vanished
 there.)*
 
+## The look — the seam palette
+
+ADR-0020 built the two worlds as two separate 32-colour tonal ramps, and left one question
+open: what happens in the Reunion, where they meet in the same room for the first time. The
+answer is a third draft palette, `apps/asset-studio/styles/reunion.draft.json`
+(`reunion-seam-draft`): his world's cold concrete and dusk neutrals as the *structure* of
+the place — wet-asphalt greys, near-blacks, underpass blues — with her world's saturated
+arcane light *bleeding through it* — violet, portal-cyan, gold, verdant green, ember — and a
+few bruised-twilight tones for where warm meets cold. Neither ramp wins; that is the point.
+
+The placeholder tile colours are what render today (real gpt-image art stays behind the
+`ImageProvider` seam under the zero-spend rule), so the Reunion World Writer prompt teaches
+the seam palette directly and tells it to **escalate the mix across the finale**: early
+shared areas read mostly his — the real underpass, cold and grounded — with her light only
+at the edges; by the last area before the ending, both worlds are fully present at once.
+Like the other two, it is a draft — locking it against real gameplay is the owner's call.
+
 ## Running it — self-hosted
 
 One of the two players hosts. There is no service, and under

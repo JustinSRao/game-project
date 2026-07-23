@@ -12,6 +12,11 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:3001",
         changeOrigin: true,
+        // The Reunion plays over a WebSocket at /api/reunions/:id/play
+        // (reunionClient.ts connects to ws://<vite host>/api/...), so the dev
+        // proxy has to forward the upgrade too — without this the shared world
+        // never connects in the browser, only in the server-direct tests.
+        ws: true,
       },
     },
   },

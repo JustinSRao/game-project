@@ -11,6 +11,7 @@
     "models": "tsx scripts/models.ts",
     "smoke": "tsx scripts/smoke.ts",
     "eval:world": "tsx scripts/worldEval.ts",
+    "reunion:smoke": "tsx scripts/reunionSmoke.ts",
     "costs": "tsx scripts/costs.ts"
   },
   "dependencies": {

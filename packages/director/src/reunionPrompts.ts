@@ -69,6 +69,7 @@ Area authoring rules:
 - QUESTS: up to 4 declared per area; a questStart effect may only name a quest THIS area declares.
 - Portals: 1-8. {"type":"generate","hint":"..."} for the next stretch; {"type":"ending","tone":...,"hint":"..."} ONLY when you are told the final act allows it.
 - "description" is establishing prose on entry: second person, present tense, concrete and sensory, 60-180 words. It is addressed to BOTH players at once — write "you" so it lands on either of them. No headings, no meta-commentary.
+- COLOR IS THE SEAM MADE VISIBLE. Tile "color" and entity "color" are the placeholder pixels that render right now; choose them from where the two worlds meet, never from one side alone. His world is the bones of the place: cold concrete and dusk neutrals — wet-asphalt greys, near-blacks, underpass blues ("#0b0c10", "#2e323b", "#6e727c", "#22304f"). Her world is the light bleeding through it: saturated arcane accents — violet, portal-cyan, gold, verdant green, ember ("#8f3bb0", "#3a7cc4", "#d9a02c", "#3d7d43", "#e05a3c"), with bruised twilight tones where warm meets cold ("#241a33", "#5b3f6e"). Muted, cohesive, lowercase "#rrggbb". Progress the mix with the finale: early shared areas read mostly HIS — the real underpass, cold and grounded — with her light only leaking in at the edges; as the story escalates let the two fully coexist, until the last area before the ending is both worlds at once and neither wins. Never a flat featureless field of one hue — the whole point is two palettes in one room. "artTag" names the kind of asset that will bind later ("underpass-wall", "arcane-lantern", "chain-link", "vowthread").
 
 ${AUTHOR_PRINCIPLES}
 
@@ -83,7 +84,7 @@ They have finished. This is the ending, and it is the ONE ending in this game th
 Required:
 - "closingText": 300-900 words, second person, present tense, concrete and sensory. The best prose in either playthrough. It must pay off BOTH histories by name — her allies, his witnesses, what each of them carried, what it cost. The crossing is worked from both sides. They reach each other.
 - Earn it. A resolution that costs nothing is not a resolution. Something is given up, and it should be specific, and it should hurt in the right way. But they are not separated again, neither of them dies, and neither of them forgets.
-- "paidOffSeedIds": the ids of the reunion seeds — from BOTH playthroughs — this ending actually pays off. At least one from each side. Do not list a seed you did not use.
+- "paidOffSeedIds": the ids of the reunion seeds this ending actually pays off, taken ONLY from the "What they carry forward" lists in the two playthroughs above — they look like "her-…" and "his-…". At least one from each side. NEVER cite a fixed-fact id: the "reunion-seed-N" rails in "Everything true" are the premise, not payoffs, and listing them is rejected. Do not list a seed you did not use.
 - "tone" matches how the two playthroughs actually felt together.
 - Never mention profiles, arcs, systems, or that anything was generated.`;
 

@@ -1,0 +1,25 @@
+{
+  "paletteName": "reunion-seam-draft",
+  "colors": [
+    "#0b0c10", "#1a1d24", "#2e323b", "#4a4f5a", "#6e727c", "#b8bcc2", "#f0efec",
+    "#3a281c", "#5e422a", "#96703f", "#d9c9a8",
+    "#241a33", "#3d2a52", "#5b3f6e",
+    "#22304f", "#3f5f8c", "#6d9ac4",
+    "#54227a", "#8f3bb0", "#cf7ad4",
+    "#1f4d30", "#3d7d43", "#7bb05a",
+    "#8a5a1c", "#d9a02c", "#f5da7a",
+    "#3a7cc4", "#8fd4e8",
+    "#b52a3a", "#e05a3c"
+  ],
+  "gridSize": 32,
+  "outline": "selective",
+  "perspective": "top-down 3/4 view",
+  "keywords": [
+    "two worlds bleeding together",
+    "cold concrete meets arcane light",
+    "railway underpass twilight",
+    "grounded structure, fantastical glow",
+    "warm light through a real-world seam",
+    "neither palette wins"
+  ]
+}
