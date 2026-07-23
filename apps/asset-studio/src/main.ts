@@ -1,20 +1,49 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { basename, join } from "node:path";
-import { StyleBible } from "@howeverfar/schema";
-import { decodePng, encodePng, processArt } from "@howeverfar/art";
-import { ASSET_KINDS, validateAsset, type AssetKind, type Finding } from "./checks.js";
+import { SpriteData, StoryPath, StyleBible, type AssetRecord } from "@howeverfar/schema";
+import {
+  decodePng,
+  encodePng,
+  processArt,
+  renderSpriteData,
+  upscale,
+  type RawImage,
+} from "@howeverfar/art";
+import {
+  assetDbRoot,
+  getAssetRecord,
+  listAssets,
+  putAsset,
+  readBlob,
+  type AssetQuery,
+} from "@howeverfar/library";
+import { ASSET_KINDS, validateAsset, validateFrameSet, type AssetKind, type Finding } from "./checks.js";
+import { parseSource, parseTags, slugifyName, stringFlag, type Flags } from "./cliHelpers.js";
 
 /**
  * Asset Studio CLI — the gate every asset passes on its way into the game
  * (ADR-0011). Agent-operable: non-interactive, exit codes, --json output.
  *
- *   asset-studio validate  <png...> --style <bible.json> --kind <kind> [--json]
- *   asset-studio normalize <png...> --style <bible.json> --out <dir>   [--json]
+ *   asset-studio validate  <png...>  --style <bible.json> --kind <kind> [--frames] [--json]
+ *   asset-studio normalize <png...>  --style <bible.json> --out <dir>   [--json]
+ *   asset-studio import    <png...>  --style <bible.json> --kind <kind> --path <her|his|shared>
+ *                          --source <cc0|sprite-data|generated|hand> [attribution flags]
+ *                          [--name <slug>] [--tags a,b] [--frames --frame-ms 140]
+ *                          [--replace] [--db <dir>] [--json]
+ *   asset-studio sprite    <spec.json...> --style <bible.json> --kind <kind> --path <p>
+ *                          [--import [import flags]] [--out <dir>] [--json]
+ *   asset-studio catalog   [--kind k] [--path p] [--tag t] [--name n] [--source type]
+ *                          [--db <dir>] [--json]
+ *   asset-studio preview   <name-or-id...> [--kind k] [--path p] [--tag t] [--all]
+ *                          --out <dir> [--scale 8] [--db <dir>] [--json]
  *
  * `normalize` runs the mandatory processArt pipeline (pixelize → quantize →
- * outline) and writes the result; `validate` checks conformance of an asset
- * that claims to be gate-ready. Exit 0 = pass, 1 = findings with errors,
- * 2 = usage/IO problem.
+ * outline); `validate` checks gate-readiness; `import` runs normalize +
+ * validate and lands passing assets in the content-addressed database with
+ * catalog metadata (license bookkeeping is mandatory for CC0); `sprite`
+ * renders model-emitted palette-indexed grids through the same gate;
+ * `catalog` queries the database; `preview` writes human-viewable upscaled
+ * PNGs. Exit 0 = pass, 1 = findings with errors, 2 = usage/IO problem.
  */
 
 interface Cli {
@@ -45,26 +74,46 @@ function parseArgs(argv: string[]): Cli {
   return { command, files, flags };
 }
 
-async function loadStyle(flags: Cli["flags"]): Promise<StyleBible> {
-  const path = flags.get("style");
-  if (typeof path !== "string") usage("--style <bible.json> is required");
+async function loadStyle(flags: Flags): Promise<StyleBible> {
+  const path = stringFlag(flags, "style");
+  if (!path) usage("--style <bible.json> is required");
   return StyleBible.parse(JSON.parse(await readFile(path, "utf8")));
 }
 
-function parseKind(flags: Cli["flags"]): AssetKind {
-  const kind = flags.get("kind");
-  if (typeof kind !== "string" || !ASSET_KINDS.includes(kind as AssetKind)) {
+function parseKind(flags: Flags): AssetKind {
+  const kind = stringFlag(flags, "kind");
+  if (!kind || !ASSET_KINDS.includes(kind as AssetKind)) {
     usage(`--kind must be one of: ${ASSET_KINDS.join(", ")}`);
   }
   return kind as AssetKind;
+}
+
+function parsePath(flags: Flags): StoryPath {
+  const parsed = StoryPath.safeParse(stringFlag(flags, "path"));
+  if (!parsed.success) usage("--path must be one of: shared, her, his");
+  return parsed.data;
+}
+
+function dbRoot(flags: Flags): string {
+  return stringFlag(flags, "db") ?? assetDbRoot();
 }
 
 function usage(problem: string): never {
   console.error(`asset-studio: ${problem}
 
 usage:
-  asset-studio validate  <png...> --style <bible.json> --kind <tile|sprite|portrait|item> [--json]
-  asset-studio normalize <png...> --style <bible.json> --out <dir> [--json]`);
+  asset-studio validate  <png...>       --style <bible.json> --kind <${ASSET_KINDS.join("|")}> [--frames] [--json]
+  asset-studio normalize <png...>       --style <bible.json> --out <dir> [--json]
+  asset-studio import    <png...>       --style <bible.json> --kind <kind> --path <shared|her|his>
+                                        --source <cc0|sprite-data|generated|hand>
+                                        (cc0: --pack --author --url [--license]; generated: --model)
+                                        [--name <slug>] [--tags a,b] [--frames [--frame-ms <ms>]]
+                                        [--replace] [--db <dir>] [--json]
+  asset-studio sprite    <spec.json...> --style <bible.json> --kind <kind> --path <p>
+                                        [--import] [--out <dir>] [--emitted-by <who>] [--json]
+  asset-studio catalog   [--kind k] [--path p] [--tag t] [--name n] [--source type] [--db <dir>] [--json]
+  asset-studio preview   [<name-or-id>...] [--kind k] [--path p] [--tag t] [--all]
+                                        --out <dir> [--scale <n>] [--db <dir>] [--json]`);
   process.exit(2);
 }
 
@@ -72,12 +121,13 @@ interface FileReport {
   file: string;
   findings: Finding[];
   outFile?: string;
+  assetId?: string;
 }
 
-function report(reports: FileReport[], json: boolean): void {
+function report(reports: FileReport[], json: boolean, extra?: Record<string, unknown>): never {
   const failed = reports.some((r) => r.findings.some((f) => f.level === "error"));
   if (json) {
-    console.log(JSON.stringify({ ok: !failed, reports }, null, 2));
+    console.log(JSON.stringify({ ok: !failed, reports, ...extra }, null, 2));
   } else {
     for (const r of reports) {
       const status = r.findings.some((f) => f.level === "error")
@@ -85,43 +135,287 @@ function report(reports: FileReport[], json: boolean): void {
         : r.findings.length > 0
           ? "WARN"
           : "PASS";
-      console.log(`${status}  ${r.file}${r.outFile ? ` -> ${r.outFile}` : ""}`);
+      const suffix = r.outFile ? ` -> ${r.outFile}` : r.assetId ? ` => db:${r.assetId.slice(0, 12)}` : "";
+      console.log(`${status}  ${r.file}${suffix}`);
       for (const f of r.findings) console.log(`      [${f.level}] ${f.check}: ${f.message}`);
     }
   }
   process.exit(failed ? 1 : 0);
 }
 
+async function readImage(file: string): Promise<RawImage> {
+  return decodePng(new Uint8Array(await readFile(file)));
+}
+
+async function cmdValidate(cli: Cli, json: boolean): Promise<never> {
+  const style = await loadStyle(cli.flags);
+  const kind = parseKind(cli.flags);
+  if (cli.flags.get("frames") === true) {
+    const frames = await Promise.all(cli.files.map(readImage));
+    return report(
+      [{ file: `${cli.files.length} frame(s): ${cli.files.join(", ")}`, findings: validateFrameSet(frames, style, kind) }],
+      json,
+    );
+  }
+  const reports: FileReport[] = [];
+  for (const file of cli.files) {
+    reports.push({ file, findings: validateAsset(await readImage(file), style, kind) });
+  }
+  return report(reports, json);
+}
+
+async function cmdNormalize(cli: Cli, json: boolean): Promise<never> {
+  const style = await loadStyle(cli.flags);
+  const out = stringFlag(cli.flags, "out");
+  if (!out) usage("--out <dir> is required");
+  await mkdir(out, { recursive: true });
+  const reports: FileReport[] = [];
+  for (const file of cli.files) {
+    const processed = processArt(await readImage(file), style);
+    const outFile = join(out, basename(file));
+    await writeFile(outFile, encodePng(processed));
+    reports.push({ file, findings: [], outFile });
+  }
+  return report(reports, json);
+}
+
+/**
+ * The full gate in one step: normalize every input through processArt,
+ * validate the result, and store what passes in the asset database with
+ * catalog metadata. With --frames all inputs are ordered frames of ONE
+ * animated asset; otherwise each file becomes its own asset.
+ */
+async function cmdImport(cli: Cli, json: boolean): Promise<never> {
+  const style = await loadStyle(cli.flags);
+  const kind = parseKind(cli.flags);
+  const path = parsePath(cli.flags);
+  const source = parseSource(cli.flags);
+  if ("error" in source) usage(source.error);
+  const tags = parseTags(cli.flags);
+  const db = dbRoot(cli.flags);
+  const replace = cli.flags.get("replace") === true;
+  const asFrames = cli.flags.get("frames") === true;
+  const nameFlag = stringFlag(cli.flags, "name");
+
+  const processed: { file: string; img: RawImage }[] = [];
+  for (const file of cli.files) {
+    processed.push({ file, img: processArt(await readImage(file), style) });
+  }
+
+  const reports: FileReport[] = [];
+  const stored: AssetRecord[] = [];
+
+  if (asFrames) {
+    const name = nameFlag ?? slugifyName(basename(cli.files[0] as string));
+    const findings = validateFrameSet(processed.map((p) => p.img), style, kind);
+    const label = `${name} (${cli.files.length} frames)`;
+    if (findings.some((f) => f.level === "error")) {
+      reports.push({ file: label, findings });
+    } else {
+      const frameMsRaw = stringFlag(cli.flags, "frame-ms");
+      const frameMs = frameMsRaw ? Number(frameMsRaw) : undefined;
+      const { record } = putAsset(
+        {
+          name,
+          kind,
+          path,
+          styleName: style.paletteName,
+          tags,
+          frames: processed.map((p) => encodePng(p.img)),
+          ...(frameMs !== undefined ? { frameMs } : {}),
+          source,
+          replace,
+        },
+        db,
+      );
+      stored.push(record);
+      reports.push({ file: label, findings, assetId: record.id });
+    }
+  } else {
+    if (nameFlag && cli.files.length > 1) {
+      usage("--name only applies to a single asset (one file, or --frames)");
+    }
+    for (const { file, img } of processed) {
+      const findings = validateAsset(img, style, kind);
+      if (findings.some((f) => f.level === "error")) {
+        reports.push({ file, findings });
+        continue;
+      }
+      const { record } = putAsset(
+        {
+          name: nameFlag ?? slugifyName(basename(file)),
+          kind,
+          path,
+          styleName: style.paletteName,
+          tags,
+          frames: [encodePng(img)],
+          source,
+          replace,
+        },
+        db,
+      );
+      stored.push(record);
+      reports.push({ file, findings, assetId: record.id });
+    }
+  }
+  return report(reports, json, { stored });
+}
+
+/** Render SpriteData specs and push them through the same gate. */
+async function cmdSprite(cli: Cli, json: boolean): Promise<never> {
+  const style = await loadStyle(cli.flags);
+  const kind = parseKind(cli.flags);
+  const doImport = cli.flags.get("import") === true;
+  const out = stringFlag(cli.flags, "out");
+  if (!doImport && !out) usage("sprite needs --import and/or --out <dir>");
+  const path = doImport ? parsePath(cli.flags) : undefined;
+  const db = dbRoot(cli.flags);
+  const replace = cli.flags.get("replace") === true;
+  const emittedBy = stringFlag(cli.flags, "emitted-by") ?? "hand";
+
+  if (out) await mkdir(out, { recursive: true });
+  const reports: FileReport[] = [];
+  const stored: AssetRecord[] = [];
+  for (const file of cli.files) {
+    const sprite = SpriteData.parse(JSON.parse(await readFile(file, "utf8")));
+    const gated = processArt(renderSpriteData(sprite), style);
+    const findings = validateAsset(gated, style, kind);
+    const entry: FileReport = { file: `${file} (${sprite.name})`, findings };
+    if (out) {
+      const outFile = join(out, `${sprite.name}.png`);
+      await writeFile(outFile, encodePng(gated));
+      entry.outFile = outFile;
+    }
+    if (!findings.some((f) => f.level === "error") && doImport && path) {
+      const { record } = putAsset(
+        {
+          name: sprite.name,
+          kind,
+          path,
+          styleName: style.paletteName,
+          tags: parseTags(cli.flags),
+          frames: [encodePng(gated)],
+          source: { type: "sprite-data", emittedBy },
+          replace,
+        },
+        db,
+      );
+      stored.push(record);
+      entry.assetId = record.id;
+    }
+    reports.push(entry);
+  }
+  return report(reports, json, { stored });
+}
+
+function catalogQuery(flags: Flags): AssetQuery {
+  const query: AssetQuery = {};
+  const kind = stringFlag(flags, "kind");
+  if (kind) {
+    if (!ASSET_KINDS.includes(kind as AssetKind)) usage(`unknown --kind "${kind}"`);
+    query.kind = kind as AssetKind;
+  }
+  const path = stringFlag(flags, "path");
+  if (path) query.path = StoryPath.parse(path);
+  const tag = stringFlag(flags, "tag");
+  if (tag) query.tag = tag;
+  const name = stringFlag(flags, "name");
+  if (name) query.name = name;
+  const source = stringFlag(flags, "source");
+  if (source) query.sourceType = source as NonNullable<AssetQuery["sourceType"]>;
+  return query;
+}
+
+function describeSource(record: AssetRecord): string {
+  const s = record.source;
+  switch (s.type) {
+    case "cc0":
+      return `cc0:${s.pack} (${s.author})`;
+    case "sprite-data":
+      return `sprite-data:${s.emittedBy}`;
+    case "generated":
+      return `generated:${s.model}`;
+    case "hand":
+      return s.author ? `hand:${s.author}` : "hand";
+  }
+}
+
+function cmdCatalog(cli: Cli, json: boolean): never {
+  const records = listAssets(catalogQuery(cli.flags), dbRoot(cli.flags));
+  if (json) {
+    console.log(JSON.stringify({ ok: true, count: records.length, assets: records }, null, 2));
+  } else if (records.length === 0) {
+    console.log("catalog is empty for this query");
+  } else {
+    for (const r of records) {
+      const frames = r.frames.length > 1 ? ` ${r.frames.length}f@${r.frameMs ?? "?"}ms` : "";
+      const tags = r.tags.length > 0 ? `  [${r.tags.join(", ")}]` : "";
+      console.log(
+        `${r.name.padEnd(24)} ${r.kind.padEnd(8)} ${r.path.padEnd(6)} ${`${r.width}x${r.height}`.padEnd(7)}${frames}  ${describeSource(r)}${tags}  ${r.id.slice(0, 12)}`,
+      );
+    }
+  }
+  process.exit(0);
+}
+
+/** Write upscaled PNGs for humans — never the gate output itself. */
+async function cmdPreview(cli: Cli, json: boolean): Promise<never> {
+  const out = stringFlag(cli.flags, "out");
+  if (!out) usage("--out <dir> is required");
+  const scaleRaw = stringFlag(cli.flags, "scale");
+  const scale = scaleRaw ? Number(scaleRaw) : 8;
+  const db = dbRoot(cli.flags);
+
+  let records: AssetRecord[];
+  if (cli.flags.get("all") === true || cli.files.length === 0) {
+    records = listAssets(catalogQuery(cli.flags), db);
+    if (records.length === 0) usage("nothing to preview — empty query and no names given");
+  } else {
+    records = cli.files.map((ref) => {
+      const byName = listAssets({ name: ref }, db);
+      if (byName.length === 1) return byName[0] as AssetRecord;
+      if (byName.length > 1) {
+        usage(`"${ref}" matches ${byName.length} assets (use catalog filters or the id)`);
+      }
+      return getAssetRecord(ref, db);
+    });
+  }
+
+  await mkdir(out, { recursive: true });
+  const reports: FileReport[] = [];
+  for (const record of records) {
+    for (let i = 0; i < record.frames.length; i++) {
+      const img = decodePng(readBlob(record.frames[i] as string, db));
+      const suffix = record.frames.length > 1 ? `.f${i}` : "";
+      const outFile = join(out, `${record.name}.${record.path}${suffix}@${scale}x.png`);
+      await writeFile(outFile, encodePng(upscale(img, scale)));
+      reports.push({ file: `${record.name} (${record.kind}, ${record.path})`, findings: [], outFile });
+    }
+  }
+  return report(reports, json);
+}
+
 async function main(): Promise<void> {
   const cli = parseArgs(process.argv.slice(2));
   const json = cli.flags.get("json") === true;
-  if (cli.files.length === 0) usage("no input files");
+  const needsFiles = ["validate", "normalize", "import", "sprite"];
+  if (needsFiles.includes(cli.command) && cli.files.length === 0) usage("no input files");
 
-  if (cli.command === "validate") {
-    const style = await loadStyle(cli.flags);
-    const kind = parseKind(cli.flags);
-    const reports: FileReport[] = [];
-    for (const file of cli.files) {
-      const img = decodePng(new Uint8Array(await readFile(file)));
-      reports.push({ file, findings: validateAsset(img, style, kind) });
-    }
-    report(reports, json);
-  } else if (cli.command === "normalize") {
-    const style = await loadStyle(cli.flags);
-    const out = cli.flags.get("out");
-    if (typeof out !== "string") usage("--out <dir> is required");
-    await mkdir(out, { recursive: true });
-    const reports: FileReport[] = [];
-    for (const file of cli.files) {
-      const img = decodePng(new Uint8Array(await readFile(file)));
-      const processed = processArt(img, style);
-      const outFile = join(out, basename(file));
-      await writeFile(outFile, encodePng(processed));
-      reports.push({ file, findings: [], outFile });
-    }
-    report(reports, json);
-  } else {
-    usage(`unknown command "${cli.command}"`);
+  switch (cli.command) {
+    case "validate":
+      return await cmdValidate(cli, json);
+    case "normalize":
+      return await cmdNormalize(cli, json);
+    case "import":
+      return await cmdImport(cli, json);
+    case "sprite":
+      return await cmdSprite(cli, json);
+    case "catalog":
+      return cmdCatalog(cli, json);
+    case "preview":
+      return await cmdPreview(cli, json);
+    default:
+      usage(`unknown command "${cli.command}"`);
   }
 }
 
