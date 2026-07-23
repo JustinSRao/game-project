@@ -25,6 +25,7 @@ import {
 } from "./deps.js";
 import { fetchExport, placeCall, pollCall, showCall, type CallDraft } from "./call.js";
 import { ensureTileTexture } from "./tiles.js";
+import { characterTint, ensureObjectTexture } from "./sprites.js";
 import { ReunionClient } from "./reunionClient.js";
 import {
   connect,
@@ -776,26 +777,29 @@ export class PlayScene extends Phaser.Scene {
     if (!this.world) return;
     this.entityLayer.removeAll(true);
     for (const entity of this.visibleEntities()) {
-      const color = Phaser.Display.Color.HexStringToColor(entity.color ?? "#94b0c2").color;
-      const size = entity.role === "item" ? TILE - 26 : TILE - 12;
-      const rect = this.add
-        .rectangle(
-          entity.pos.x * TILE + TILE / 2,
-          entity.pos.y * TILE + TILE / 2,
-          size,
-          size,
-          color,
-        )
-        .setStrokeStyle(1, 0x000000, 0.5);
+      const cx = entity.pos.x * TILE + TILE / 2;
+      const cy = entity.pos.y * TILE + TILE / 2;
+      if (entity.role === "character") {
+        // NPCs are LPC people too, tinted per id so they read apart from the
+        // player (who is untinted) and from each other.
+        const npc = this.add
+          .sprite(cx, cy, "hero", this.idleFrame("down"))
+          .setOrigin(0.5, 0.78)
+          .setTint(characterTint(entity.id));
+        this.entityLayer.add(npc);
+      } else {
+        // Props and items are generated silhouettes on a transparent tile.
+        const img = this.add.image(cx, cy, ensureObjectTexture(this, entity));
+        this.entityLayer.add(img);
+      }
       const label = this.add
-        .text(entity.pos.x * TILE + TILE / 2, entity.pos.y * TILE - 4, ui.displayName(entity.id, entity.name), {
+        .text(cx, entity.pos.y * TILE - 4, ui.displayName(entity.id, entity.name), {
           fontFamily: "ui-monospace, Consolas, monospace",
           fontSize: "10px",
           color: "#e8e6df",
         })
         .setOrigin(0.5, 1)
         .setShadow(0, 1, "#000000", 2);
-      this.entityLayer.add(rect);
       this.entityLayer.add(label);
     }
     this.drawPartner();
