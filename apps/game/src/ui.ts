@@ -10,6 +10,8 @@ const panel = document.getElementById("panel") as HTMLDivElement;
 const veil = document.getElementById("veil") as HTMLDivElement;
 const hudArea = document.getElementById("hud-area") as HTMLSpanElement;
 const hudPrompt = document.getElementById("hud-prompt") as HTMLSpanElement;
+const say = document.getElementById("say") as HTMLDivElement;
+const sayInput = document.getElementById("say-input") as HTMLInputElement;
 
 export type PanelState =
   | { mode: "closed" }
@@ -155,6 +157,67 @@ export function choiceAt(n: number): { choice: ConvoChoice; entityId: string } |
   if (state.mode !== "choices") return undefined;
   const choice = state.choices[n - 1];
   return choice ? { choice, entityId: state.entityId } : undefined;
+}
+
+/**
+ * The free-text line: the player speaking in their own words. Keystrokes stop
+ * here (never reach Phaser) while it is open; Enter submits, Escape cancels.
+ */
+let sayCallback: ((text: string) => void) | undefined;
+
+sayInput.addEventListener("keydown", (event) => {
+  event.stopPropagation();
+  if (event.key === "Enter") {
+    const text = sayInput.value.trim();
+    if (text.length === 0) return;
+    const submit = sayCallback;
+    closeSay();
+    submit?.(text);
+  } else if (event.key === "Escape") {
+    closeSay();
+  }
+});
+
+export function openSay(onSubmit: (text: string) => void): void {
+  sayCallback = onSubmit;
+  sayInput.value = "";
+  say.classList.add("open");
+  sayInput.focus();
+}
+
+export function closeSay(): void {
+  sayCallback = undefined;
+  say.classList.remove("open");
+  sayInput.blur();
+}
+
+export function sayOpen(): boolean {
+  return say.classList.contains("open");
+}
+
+/** A keyed menu on the veil (boot screen: continue a save / start fresh). */
+export function showMenu(
+  title: string,
+  body: string,
+  options: readonly { key: string; label: string }[],
+): void {
+  showVeil(title, body, "");
+  const inner = veil.querySelector(".inner");
+  if (!inner) return;
+  const wrap = document.createElement("div");
+  wrap.className = "options";
+  for (const option of options) {
+    const el = document.createElement("div");
+    el.className = "option";
+    const key = document.createElement("span");
+    key.className = "key";
+    key.textContent = option.key;
+    el.appendChild(key);
+    el.appendChild(document.createTextNode(option.label));
+    wrap.appendChild(el);
+  }
+  const hint = inner.querySelector(".hint");
+  inner.insertBefore(wrap, hint);
 }
 
 export function showVeil(title: string, body: string, hint: string): void {

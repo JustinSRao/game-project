@@ -47,23 +47,59 @@ interface CreateResponse {
   state: AreaGameState;
 }
 
-/** Try to open a server session; fall back to local play. */
-export async function connect(): Promise<{ session: Session; world: World }> {
+/** A saved server session, as listed by GET /api/world-sessions. */
+export interface SaveInfo {
+  id: string;
+  phase: string;
+  path: "shared" | "her" | "his";
+  updatedAt: string;
+  areasVisited: number;
+}
+
+/** Saved sessions on the server (newest first); empty when unreachable. */
+export async function listSaves(): Promise<SaveInfo[]> {
+  try {
+    const res = await fetch("/api/world-sessions");
+    if (!res.ok) return [];
+    return (await res.json()) as SaveInfo[];
+  } catch {
+    return [];
+  }
+}
+
+async function tryOpen(
+  body: { mode: "new" } | { mode: "resume"; id: string },
+): Promise<{ session: Session; world: World } | undefined> {
   try {
     const res = await fetch("/api/world-sessions", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ mode: "new" }),
+      body: JSON.stringify(body),
     });
-    if (!res.ok) throw new Error(`server said ${res.status}`);
-    const body = (await res.json()) as CreateResponse;
+    if (!res.ok) return undefined;
+    const parsed = (await res.json()) as CreateResponse;
     return {
-      session: { mode: "server", id: body.sessionId },
-      world: { area: body.area, state: body.state },
+      session: { mode: "server", id: parsed.sessionId },
+      world: { area: parsed.area, state: parsed.state },
     };
   } catch {
-    return { session: { mode: "local" }, world: newLocalWorld() };
+    return undefined;
   }
+}
+
+/**
+ * Open a server session — resuming a save when asked — and fall back to a
+ * fresh server session, then to local play, if that fails.
+ */
+export async function connect(
+  resumeId?: string,
+): Promise<{ session: Session; world: World }> {
+  if (resumeId) {
+    const resumed = await tryOpen({ mode: "resume", id: resumeId });
+    if (resumed) return resumed;
+  }
+  const fresh = await tryOpen({ mode: "new" });
+  return fresh ?? { session: { mode: "local" }, world: newLocalWorld() };
 }
 
 export type ServerTurn =

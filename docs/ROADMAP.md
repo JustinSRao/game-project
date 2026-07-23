@@ -76,9 +76,10 @@ Goal: walk a character through a generated map in the Phaser client, on either p
       on her sleeve) and the World Writer opened on a 16x14 "Ruined Moon Shrine" —
       integrity clean, named characters carrying kanji nameMeanings. Crossing latency
       ~3min with strong models — the Phase 6 speculative-generation item is the answer
-- [ ] Post-demo polish: free-text input UI in the game client (signals flow now;
-      generation response to free text arrives with streaming, Phase 6), and an
-      in-client path for resuming a saved session
+- [x] Post-demo polish: free-text input UI in the game client (press T — signals
+      flow now; generation response to free text arrives with streaming, Phase 6),
+      and an in-client path for resuming a saved session (boot menu lists the
+      three newest saves; resume falls back to new, then to local play)
 
 ## Phase 5 — Asset Studio + the asset database
 

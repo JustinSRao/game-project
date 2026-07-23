@@ -12,8 +12,10 @@ import {
 import {
   connect,
   followTransition,
+  listSaves,
   sendAction,
   ServerError,
+  type SaveInfo,
   type Session,
   type World,
 } from "./world.js";
@@ -21,6 +23,19 @@ import * as ui from "./ui.js";
 
 export const TILE = 48;
 const MOVE_MS = 140;
+
+const PATH_LABEL: Record<SaveInfo["path"], string> = {
+  shared: "the prologue",
+  her: "her path",
+  his: "his path",
+};
+
+function describeSave(save: SaveInfo): string {
+  const areas = `${save.areasVisited} ${save.areasVisited === 1 ? "area" : "areas"}`;
+  const when = new Date(save.updatedAt);
+  const date = Number.isNaN(when.getTime()) ? "" : ` · ${when.toLocaleDateString()}`;
+  return `${PATH_LABEL[save.path]}, ${areas}${date}`;
+}
 
 /**
  * Presentation + input only (ADR-0010): every rule goes through the engine;
@@ -33,6 +48,7 @@ export class PlayScene extends Phaser.Scene {
   private mapLayer!: Phaser.GameObjects.Container;
   private entityLayer!: Phaser.GameObjects.Container;
   private moving = false;
+  private menu: readonly { key: string; label: string; action: () => void }[] | undefined;
   private keys!: Record<"W" | "A" | "S" | "D" | "UP" | "LEFT" | "DOWN" | "RIGHT", Phaser.Input.Keyboard.Key>;
 
   constructor() {
@@ -40,13 +56,8 @@ export class PlayScene extends Phaser.Scene {
   }
 
   create(): void {
-    void connect().then(({ session, world }) => {
-      this.session = session;
-      this.world = world;
-      ui.hideVeil();
-      this.buildArea();
-      ui.showNarration(world.area.description);
-    });
+    ui.showVeil("However Far", "Opening the evening…", "");
+    void this.boot();
 
     const kb = this.input.keyboard;
     if (!kb) throw new Error("keyboard input unavailable");
@@ -58,22 +69,67 @@ export class PlayScene extends Phaser.Scene {
       ui.advancePanel();
     });
     kb.on("keydown-E", () => this.tryInteract());
+    kb.on("keydown-T", () => this.trySay());
     kb.on("keydown-ENTER", () => this.tryPortal());
     kb.on("keydown-ESC", () => {
+      if (!this.world) return;
       if (ui.veilOpen()) ui.hideVeil();
       else ui.closePanel();
+    });
+    kb.on("keydown", (event: KeyboardEvent) => {
+      const picked = this.menu?.find((o) => o.key === event.key.toLowerCase());
+      if (picked) {
+        this.menu = undefined;
+        picked.action();
+      }
     });
     for (const n of [1, 2, 3, 4] as const) {
       kb.on(`keydown-${["ONE", "TWO", "THREE", "FOUR"][n - 1]}`, () => this.pickChoice(n));
     }
+  }
 
-    ui.showVeil("However Far", "Opening the evening…", "");
+  /** Boot: offer saved sessions when the server has any, else start fresh. */
+  private async boot(): Promise<void> {
+    const saves = await listSaves();
+    if (saves.length === 0) {
+      await this.start(undefined);
+      return;
+    }
+    const options = saves.slice(0, 3).map((save, i) => ({
+      key: String(i + 1),
+      label: `continue — ${describeSave(save)}`,
+      action: () => void this.start(save.id),
+    }));
+    this.menu = [
+      ...options,
+      { key: "n", label: "begin a new evening", action: () => void this.start(undefined) },
+    ];
+    ui.showMenu(
+      "However Far",
+      "The story remembers where you left it.",
+      this.menu.map(({ key, label }) => ({ key, label })),
+    );
+  }
+
+  private async start(resumeId: string | undefined): Promise<void> {
+    ui.showVeil(
+      "However Far",
+      resumeId ? "Reopening where you left off…" : "Opening the evening…",
+      "",
+    );
+    const { session, world } = await connect(resumeId);
+    this.session = session;
+    this.world = world;
+    ui.hideVeil();
+    this.buildArea();
+    ui.showNarration(world.area.description);
   }
 
   override update(): void {
     if (!this.world) return;
     this.updateHud();
-    if (this.moving || ui.panelState().mode !== "closed" || ui.veilOpen()) return;
+    if (this.moving || ui.panelState().mode !== "closed" || ui.veilOpen() || ui.sayOpen())
+      return;
 
     const dir = this.heldDirection();
     if (!dir) return;
@@ -124,9 +180,44 @@ export class PlayScene extends Phaser.Scene {
     });
   }
 
+  /** Open the free-text line — the player acting in their own words. */
+  private trySay(): void {
+    if (
+      !this.world ||
+      ui.panelState().mode !== "closed" ||
+      ui.veilOpen() ||
+      ui.sayOpen() ||
+      this.moving
+    )
+      return;
+    ui.openSay((text) => this.submitSay(text));
+  }
+
+  private submitSay(text: string): void {
+    if (this.session.mode !== "server") {
+      ui.showNarration(
+        "You say it into the evening air. Without the game server, no one is writing this down — start it, and your words will shape the story.",
+      );
+      return;
+    }
+    void sendAction(this.session, { type: "freeText", text })
+      .then((result) => {
+        if (result.kind === "ok") {
+          if (this.world) this.world = { ...this.world, state: result.state };
+          ui.showNarration(
+            result.ack ?? "The moment takes what you said and keeps it.",
+          );
+        }
+      })
+      .catch(() => {
+        ui.showNarration("Your words scattered before they landed — say it again.");
+      });
+  }
+
   private tryInteract(): void {
     const w = this.world;
-    if (!w || ui.panelState().mode !== "closed" || ui.veilOpen() || this.moving) return;
+    if (!w || ui.panelState().mode !== "closed" || ui.veilOpen() || ui.sayOpen() || this.moving)
+      return;
     const target = reachableEntities(w.state, w.area)[0];
     if (!target) return;
     const outcome = runInteraction(w.state, w.area, target.id);
@@ -161,7 +252,8 @@ export class PlayScene extends Phaser.Scene {
 
   private tryPortal(): void {
     const w = this.world;
-    if (!w || ui.panelState().mode !== "closed" || ui.veilOpen() || this.moving) return;
+    if (!w || ui.panelState().mode !== "closed" || ui.veilOpen() || ui.sayOpen() || this.moving)
+      return;
     const portal = portalUnderPlayer(w.state, w.area);
     if (!portal) return;
 
@@ -292,8 +384,9 @@ export class PlayScene extends Phaser.Scene {
   private updateHud(): void {
     const w = this.world;
     if (!w) return;
-    let prompt = "wasd / arrows · move";
+    let prompt = "wasd / arrows · move   t · speak";
     if (ui.veilOpen()) prompt = "";
+    else if (ui.sayOpen()) prompt = "enter · say it   esc · never mind";
     else if (ui.panelState().mode !== "closed") prompt = "";
     else {
       const portal = portalUnderPlayer(w.state, w.area);
