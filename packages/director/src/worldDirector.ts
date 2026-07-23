@@ -5,6 +5,7 @@ import type {
   AreaSpec,
   AreaTransition,
   StoryPath,
+  ThresholdEnding,
 } from "@howeverfar/schema";
 import { applyAreaAction, enterArea, initialAreaState } from "@howeverfar/engine";
 import {
@@ -26,6 +27,7 @@ import {
   type WriteAreaResult,
 } from "./worldWriter.js";
 import type { WorldWriterContext } from "./worldPrompts.js";
+import { writeThreshold } from "./threshold.js";
 
 /** Accepted areas without beat progress before the Architect revises the arc. */
 const DRIFT_THRESHOLD = 3;
@@ -63,7 +65,7 @@ const PROLOGUE_FREETEXT_ACK =
 export type WorldTurnResult =
   | { kind: "area"; area: AreaSpec; state: AreaGameState }
   | { kind: "ok"; state: AreaGameState; ack?: string }
-  | { kind: "threshold"; summary: string };
+  | { kind: "threshold"; summary: string; ending?: ThresholdEnding };
 
 export interface WorldDirectorOptions {
   model: ModelClient;
@@ -195,7 +197,11 @@ export class WorldDirector {
 
   async handleAction(action: AreaAction): Promise<WorldTurnResult> {
     if (this.session.phase === "ended") {
-      return { kind: "threshold", summary: this.session.endingSummary ?? "" };
+      return {
+        kind: "threshold",
+        summary: this.session.endingSummary ?? "",
+        ...(this.session.ending ? { ending: this.session.ending } : {}),
+      };
     }
     const area = this.currentArea();
     const outcome = applyAreaAction(this.session.state, area, action);
@@ -304,12 +310,59 @@ export class WorldDirector {
             `The player moved toward an ending ("${t.hint}") — but the story is not finished. Give this attempted conclusion real narrative weight, then turn it back toward the work the arc still owes.`,
           );
         }
-        this.session.phase = "ended";
-        this.session.endingSummary = t.hint;
-        this.touch();
-        return { kind: "threshold", summary: t.hint };
+        return this.reachThreshold(t.hint);
       }
     }
+  }
+
+  /**
+   * The finale. STORY.md: a solo path ends at a threshold, not a resolution —
+   * so this is authored like any other beat rather than echoing the portal's
+   * hint back at the player, and it records what the playthrough carries into
+   * a future Reunion (Phase 7).
+   */
+  private async reachThreshold(hint: string): Promise<WorldTurnResult> {
+    if (!this.session.arc || !this.session.profile || this.session.path === "shared") {
+      // Should be unreachable: endings are gated on the final act, which only
+      // exists after the crossing. Close the session honestly rather than throw.
+      this.session.phase = "ended";
+      this.session.endingSummary = hint;
+      this.touch();
+      return { kind: "threshold", summary: hint };
+    }
+
+    const ending = await this.charge(() =>
+      writeThreshold(
+        this.model,
+        {
+          path: this.session.path as "her" | "his",
+          profile: this.session.profile!,
+          arc: this.session.arc!,
+          facts: this.ledger.active(),
+          hint,
+          visitedAreaIds: this.session.state.visitedAreaIds,
+        },
+        { log: this.log },
+      ),
+    );
+
+    this.session.ending = ending;
+    this.session.phase = "ended";
+    this.session.endingSummary = ending.threshold;
+    // The seeds are canon: Phase 7 merges two playthroughs from exactly this.
+    this.ledger.append(
+      ending.reunionSeeds.map((seed) => ({
+        id: seed.id,
+        statement: seed.statement,
+        entities: [],
+        sceneId: this.session.state.currentAreaId,
+      })),
+      this.session.state.currentAreaId,
+    );
+    this.session.canon = [...this.ledger.all()];
+    this.touch();
+    this.log(`threshold reached: ${ending.title}`);
+    return { kind: "threshold", summary: ending.threshold, ending };
   }
 
   /** The crossing: read the player, load the rails, plan their side of the story. */

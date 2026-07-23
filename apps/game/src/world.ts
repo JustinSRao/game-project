@@ -3,6 +3,7 @@ import type {
   AreaGameState,
   AreaSpec,
   AreaTransition,
+  ThresholdEnding,
 } from "@howeverfar/schema";
 import {
   enterArea,
@@ -107,7 +108,7 @@ export async function connect(
 export type ServerTurn =
   | { kind: "area"; area: AreaSpec; state: AreaGameState }
   | { kind: "ok"; state: AreaGameState; ack?: string }
-  | { kind: "threshold"; summary: string };
+  | { kind: "threshold"; summary: string; ending?: ThresholdEnding };
 
 export class ServerError extends Error {
   constructor(

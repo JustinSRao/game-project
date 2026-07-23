@@ -59,6 +59,14 @@ export {
   type WriteAreaResult,
 } from "./worldWriter.js";
 export {
+  buildThresholdUser,
+  checkThreshold,
+  THRESHOLD_SYSTEM,
+  ThresholdFailedError,
+  writeThreshold,
+  type ThresholdContext,
+} from "./threshold.js";
+export {
   WorldDirector,
   type WorldDirectorOptions,
   type WorldTurnResult,

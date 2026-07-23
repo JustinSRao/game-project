@@ -312,7 +312,14 @@ export class PlayScene extends Phaser.Scene {
             this.buildArea();
             ui.showNarration(result.area.description);
           } else if (result.kind === "threshold") {
-            ui.showVeil("A threshold.", result.summary, "esc · back");
+            // The finale is authored prose, not a one-line hint. Escape is
+            // deliberately not offered: this is where the path ends.
+            const ending = result.ending;
+            ui.showVeil(
+              ending?.title ?? "A threshold.",
+              ending?.closingText ?? result.summary,
+              ending ? ending.threshold : "esc · back",
+            );
           }
         })
         .catch((err: unknown) => {

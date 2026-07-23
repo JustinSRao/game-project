@@ -159,7 +159,12 @@ Goal: both paths playable start → threshold ending, feeling like a real game.
       and integrity validation rejects them, including inside a check's failure
       branch. Cosmetic by construction — a test pins that sheet, inventory, quests and
       position are untouched, so the always-playable invariant holds
-- [ ] Path endings: threshold finales per STORY.md; full playthroughs of both paths
+- [x] Path endings: a **Threshold Writer** stage authors the finale instead of echoing
+      the portal's hint — climax plus threshold in 200-500 words, a specifically named
+      obstacle, and `reunionSeeds` appended to canon. STORY.md's rule is enforced with
+      retries-on-rejection: a solo path ends at a **threshold, not a resolution**, and
+      an ending that reads as a reunion is sent back. Retries exhausted still closes
+      the playthrough — a player who reached the end always gets an ending
 - [x] Cost guardrails: a **soft** per-session USD budget
       (`HOWEVERFAR_SESSION_BUDGET_USD`, default $3) tracked on the save via an
       in-process cost counter over the ADR-0018 ledger. Soft is the design — going

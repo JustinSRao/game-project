@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ThresholdEnding } from "./arc.js";
 import { Slug } from "./scene.js";
 import { AreaGameState, AreaSpec, StoryPath } from "./area.js";
 import { PlayerProfile, PlaySignal } from "./profile.js";
@@ -28,6 +29,8 @@ export const AreaSessionSave = z.object({
    * saves written before budgeting still load.
    */
   spentUsd: z.number().min(0).default(0),
+  /** The authored finale, once the path reaches its threshold. */
+  ending: ThresholdEnding.optional(),
   areasSinceBeatProgress: z.number().int().min(0).default(0),
   endingSummary: z.string().max(2000).optional(),
 });
