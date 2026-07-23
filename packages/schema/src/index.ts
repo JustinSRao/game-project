@@ -6,3 +6,4 @@ export * from "./profile.js";
 export * from "./arc.js";
 export * from "./canon.js";
 export * from "./bundle.js";
+export * from "./asset.js";
